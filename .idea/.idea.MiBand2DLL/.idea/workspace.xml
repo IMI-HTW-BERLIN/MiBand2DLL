@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2684e071-b7ad-4f4e-9f71-d74246c87cc8" name="Default Changelist" comment="" />
+    <list default="true" id="2684e071-b7ad-4f4e-9f71-d74246c87cc8" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vs/MiBand2DLL/v16/.suo" beforeDir="false" afterPath="$PROJECT_DIR$/.vs/MiBand2DLL/v16/.suo" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/bin/Debug/MiBand2DLL.dll" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/bin/Debug/MiBand2DLL.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/bin/Debug/MiBand2DLL.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/bin/Debug/MiBand2DLL.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/lib/Consts.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/lib/Consts.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/lib/HeartRate.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/lib/HeartRate.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/lib/MiBand2SDK.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/lib/MiBand2SDK.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.csprojAssemblyReference.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.dll" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2ExecutableForTesting/bin/Debug/MiBand2DLL.dll" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2ExecutableForTesting/bin/Debug/MiBand2DLL.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2ExecutableForTesting/bin/Debug/MiBand2DLL.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2ExecutableForTesting/bin/Debug/MiBand2DLL.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiBand2ExecutableForTesting/obj/Debug/MiBand2ExecutableForTesting.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2ExecutableForTesting/obj/Debug/MiBand2ExecutableForTesting.csprojAssemblyReference.cache" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -11,32 +27,36 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/97/1ac087f9/BluetoothLEDevice.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/20/e165fd36/GattCharacteristic.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/1FD2B4BD-94BF-413D-AF99-4EE5DB2B806A/12/4564ffed/IPropertySet.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/75/04708f70/GattDeviceService.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MiBand2ExecutableForTesting/TestForm.Designer.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2ExecutableForTesting/TestForm.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/MiBand2.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/lib/MiBand2SDK.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/lib/Identity.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/lib/HeartRate.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/20/e165fd36/GattCharacteristic.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/lib/Consts.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/1FD2B4BD-94BF-413D-AF99-4EE5DB2B806A/6a/fa7f6d70/PropertySet.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/1FD2B4BD-94BF-413D-AF99-4EE5DB2B806A/12/4564ffed/IPropertySet.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MiBand2ExecutableForTesting/TestForm.Designer.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock:///Consts.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/6c/a0bda87b/ApplicationDataContainer.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/MiBand2ExecutableForTesting/Form1.cs" />
-        <option value="$PROJECT_DIR$/MiBand2DLL/lib/HeartRate.cs" />
-        <option value="$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" />
         <option value="$PROJECT_DIR$/MiBand2DLL/lib/Consts.cs" />
         <option value="$PROJECT_DIR$/MiBand2DLL/lib/MiBand2.cs" />
         <option value="$PROJECT_DIR$/MiBand2DLL/MiBand2DLL.cs" />
         <option value="$PROJECT_DIR$/MiBand2DLL/lib/MiBand2SDK.cs" />
-        <option value="$PROJECT_DIR$/MiBand2DLL/MiBand2.cs" />
         <option value="$PROJECT_DIR$/MiBand2ExecutableForTesting/TestForm.cs" />
         <option value="$PROJECT_DIR$/MiBand2DLL/lib/Identity.cs" />
+        <option value="$PROJECT_DIR$/MiBand2DLL/MiBand2.cs" />
+        <option value="$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" />
+        <option value="$PROJECT_DIR$/MiBand2DLL/lib/HeartRate.cs" />
+        <option value="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/.gitignore" />
       </list>
     </option>
   </component>
@@ -102,8 +122,30 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1589205419256</updated>
-      <workItem from="1589205424051" duration="9119000" />
+      <workItem from="1589205424051" duration="13579000" />
     </task>
+    <task id="LOCAL-00001" summary="[Initial commit] [Refactored a bit] [Not working atm: &quot;Access denied&quot; when trying to read HR]">
+      <created>1589214910058</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1589214910058</updated>
+    </task>
+    <task id="LOCAL-00002" summary="[Added some folders to .gitignore]">
+      <created>1589220629961</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1589220629961</updated>
+    </task>
+    <task id="LOCAL-00003" summary="[Added some folders to .gitignore]">
+      <created>1589220695675</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1589220695675</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -113,6 +155,9 @@
   <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="[Initial commit] [Refactored a bit] [Not working atm: &quot;Access denied&quot; when trying to read HR]" />
+    <MESSAGE value="[Added some folders to .gitignore]" />
+    <option name="LAST_COMMIT_MESSAGE" value="[Added some folders to .gitignore]" />
   </component>
   <component name="WindowStateProjectService">
     <state x="918" y="598" width="490" height="204" key="Github.ShareDialog" timestamp="1589214699188">
@@ -123,86 +168,86 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1016" y="406" key="Github.UntrackedFilesDialog/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589214725519" />
-    <state width="2517" height="401" key="GridCell.Tab.0.bottom" timestamp="1589213812448">
+    <state width="2517" height="401" key="GridCell.Tab.0.bottom" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.0.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812448" />
-    <state width="2517" height="401" key="GridCell.Tab.0.center" timestamp="1589213812448">
+    <state width="2517" height="401" key="GridCell.Tab.0.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.0.center" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.0.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812448" />
-    <state width="2517" height="401" key="GridCell.Tab.0.left" timestamp="1589213812448">
+    <state width="2517" height="401" key="GridCell.Tab.0.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.0.left" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.0.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812448" />
-    <state width="2517" height="401" key="GridCell.Tab.0.right" timestamp="1589213812448">
+    <state width="2517" height="401" key="GridCell.Tab.0.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.0.right" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.0.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812448" />
-    <state width="2517" height="401" key="GridCell.Tab.1.bottom" timestamp="1589213814502">
+    <state width="2517" height="401" key="GridCell.Tab.0.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.1.bottom" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.1.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213814502" />
-    <state width="2517" height="401" key="GridCell.Tab.1.center" timestamp="1589213814502">
+    <state width="2517" height="401" key="GridCell.Tab.1.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.1.center" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.1.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213814502" />
-    <state width="2517" height="401" key="GridCell.Tab.1.left" timestamp="1589213814502">
+    <state width="2517" height="401" key="GridCell.Tab.1.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.1.left" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.1.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213814502" />
-    <state width="2517" height="401" key="GridCell.Tab.1.right" timestamp="1589213814502">
+    <state width="2517" height="401" key="GridCell.Tab.1.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.1.right" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.1.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213814502" />
-    <state width="2517" height="401" key="GridCell.Tab.2.bottom" timestamp="1589213812343">
+    <state width="2517" height="401" key="GridCell.Tab.1.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.2.bottom" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.2.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812343" />
-    <state width="2517" height="401" key="GridCell.Tab.2.center" timestamp="1589213812343">
+    <state width="2517" height="401" key="GridCell.Tab.2.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.2.center" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.2.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812343" />
-    <state width="2517" height="401" key="GridCell.Tab.2.left" timestamp="1589213812343">
+    <state width="2517" height="401" key="GridCell.Tab.2.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.2.left" timestamp="1589217977155">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.2.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812343" />
-    <state width="2517" height="401" key="GridCell.Tab.2.right" timestamp="1589213812343">
+    <state width="2517" height="401" key="GridCell.Tab.2.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977155" />
+    <state width="2517" height="401" key="GridCell.Tab.2.right" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.2.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812343" />
-    <state width="2517" height="401" key="GridCell.Tab.3.bottom" timestamp="1589213812344">
+    <state width="2517" height="401" key="GridCell.Tab.2.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.3.bottom" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.3.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812344" />
-    <state width="2517" height="401" key="GridCell.Tab.3.center" timestamp="1589213812343">
+    <state width="2517" height="401" key="GridCell.Tab.3.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.3.center" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.3.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812343" />
-    <state width="2517" height="401" key="GridCell.Tab.3.left" timestamp="1589213812343">
+    <state width="2517" height="401" key="GridCell.Tab.3.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.3.left" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.3.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812343" />
-    <state width="2517" height="401" key="GridCell.Tab.3.right" timestamp="1589213812344">
+    <state width="2517" height="401" key="GridCell.Tab.3.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.3.right" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.3.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812344" />
-    <state width="2517" height="401" key="GridCell.Tab.4.bottom" timestamp="1589213812344">
+    <state width="2517" height="401" key="GridCell.Tab.3.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.4.bottom" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.4.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812344" />
-    <state width="2517" height="401" key="GridCell.Tab.4.center" timestamp="1589213812344">
+    <state width="2517" height="401" key="GridCell.Tab.4.bottom/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.4.center" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.4.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812344" />
-    <state width="2517" height="401" key="GridCell.Tab.4.left" timestamp="1589213812344">
+    <state width="2517" height="401" key="GridCell.Tab.4.center/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.4.left" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.4.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812344" />
-    <state width="2517" height="401" key="GridCell.Tab.4.right" timestamp="1589213812344">
+    <state width="2517" height="401" key="GridCell.Tab.4.left/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
+    <state width="2517" height="401" key="GridCell.Tab.4.right" timestamp="1589217977156">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="401" key="GridCell.Tab.4.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589213812344" />
+    <state width="2517" height="401" key="GridCell.Tab.4.right/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589217977156" />
     <state x="872" y="432" key="Rider.ProjectTemplateDialog.Size" timestamp="1589205551553">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -211,9 +256,17 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="345" key="SettingsEditor/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589208413836" />
-    <state x="943" y="315" width="672" height="678" key="search.everywhere.popup" timestamp="1589211620440">
+    <state x="872" y="433" key="Vcs.Push.Dialog.v2" timestamp="1589220697172">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="943" y="315" width="672" height="678" key="search.everywhere.popup/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589211620440" />
+    <state x="872" y="433" key="Vcs.Push.Dialog.v2/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589220697172" />
+    <state x="1089" y="614" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1589220662502">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1089" y="614" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589220662502" />
+    <state x="943" y="315" width="672" height="678" key="search.everywhere.popup" timestamp="1589220181869">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="943" y="315" width="672" height="678" key="search.everywhere.popup/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589220181869" />
   </component>
 </project>
