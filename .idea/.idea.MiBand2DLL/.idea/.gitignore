@@ -477,3 +477,9 @@ healthchecksdb
 MigrationBackup/
 
 # End of https://www.gitignore.io/api/rider,macos,windows,visualstudio
+
+# CUSTOM
+MiBand2DLL/bin
+MiBand2DLL/obj
+MiBand2ExecutableForTesting/bin
+MiBand2ExecutableForTesting/obj
