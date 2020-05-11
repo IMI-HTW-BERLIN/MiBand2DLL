@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2684e071-b7ad-4f4e-9f71-d74246c87cc8" name="Default Changelist" comment="">
+    <list default="true" id="2684e071-b7ad-4f4e-9f71-d74246c87cc8" name="Default Changelist" comment="[Help]">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.vs/MiBand2DLL/v16/.suo" beforeDir="false" afterPath="$PROJECT_DIR$/.vs/MiBand2DLL/v16/.suo" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MiBand2DLL/bin/Debug/MiBand2DLL.dll" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/bin/Debug/MiBand2DLL.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MiBand2DLL/bin/Debug/MiBand2DLL.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/bin/Debug/MiBand2DLL.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MiBand2DLL/lib/Consts.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/lib/Consts.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MiBand2DLL/lib/HeartRate.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/lib/HeartRate.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MiBand2DLL/lib/MiBand2SDK.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/lib/MiBand2SDK.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.csprojAssemblyReference.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.dll" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/MiBand2DLL/obj/Debug/MiBand2DLL.pdb" afterDir="false" />
@@ -28,11 +25,14 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/97/1ac087f9/BluetoothLEDevice.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Gatt.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/20/e165fd36/GattCharacteristic.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///HeartRate.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/1FD2B4BD-94BF-413D-AF99-4EE5DB2B806A/12/4564ffed/IPropertySet.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/75/04708f70/GattDeviceService.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2ExecutableForTesting/TestForm.Designer.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2ExecutableForTesting/TestForm.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock:///Consts.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/MiBand2.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/lib/MiBand2SDK.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/lib/Identity.cs" root0="FORCE_HIGHLIGHTING" />
@@ -41,6 +41,7 @@
     <setting file="file://$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/1FD2B4BD-94BF-413D-AF99-4EE5DB2B806A/6a/fa7f6d70/PropertySet.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Consts.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///MiBand2SDK.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/metadata/A0D909A2-C256-42DD-B830-EB47A8D30B71/6c/a0bda87b/ApplicationDataContainer.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
@@ -56,6 +57,7 @@
         <option value="$PROJECT_DIR$/MiBand2DLL/MiBand2.cs" />
         <option value="$PROJECT_DIR$/MiBand2DLL/lib/Gatt.cs" />
         <option value="$PROJECT_DIR$/MiBand2DLL/lib/HeartRate.cs" />
+        <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/.idea/.idea.MiBand2DLL/.idea/.gitignore" />
       </list>
     </option>
@@ -122,7 +124,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1589205419256</updated>
-      <workItem from="1589205424051" duration="13579000" />
+      <workItem from="1589205424051" duration="14262000" />
     </task>
     <task id="LOCAL-00001" summary="[Initial commit] [Refactored a bit] [Not working atm: &quot;Access denied&quot; when trying to read HR]">
       <created>1589214910058</created>
@@ -145,7 +147,42 @@
       <option name="project" value="LOCAL" />
       <updated>1589220695675</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="[Still trying to exclude folders...]">
+      <created>1589220889888</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1589220889888</updated>
+    </task>
+    <task id="LOCAL-00005" summary="[Fixed &quot;Access denied&quot; bug]">
+      <created>1589220955830</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1589220955830</updated>
+    </task>
+    <task id="LOCAL-00006" summary="[GitIgnore test]">
+      <created>1589221248195</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1589221248195</updated>
+    </task>
+    <task id="LOCAL-00007" summary="[Please work...]">
+      <created>1589221396022</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1589221396022</updated>
+    </task>
+    <task id="LOCAL-00008" summary="[Help]">
+      <created>1589221468516</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1589221468516</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -157,7 +194,14 @@
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="[Initial commit] [Refactored a bit] [Not working atm: &quot;Access denied&quot; when trying to read HR]" />
     <MESSAGE value="[Added some folders to .gitignore]" />
-    <option name="LAST_COMMIT_MESSAGE" value="[Added some folders to .gitignore]" />
+    <MESSAGE value="[Still trying to exclude folders...]" />
+    <MESSAGE value="[Fixed &quot;Access denied&quot; bug]" />
+    <MESSAGE value="[GitIgnore test]" />
+    <MESSAGE value="[Please work...]" />
+    <MESSAGE value="[Help]" />
+    <option name="LAST_COMMIT_MESSAGE" value="[Help]" />
+    <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="WindowStateProjectService">
     <state x="918" y="598" width="490" height="204" key="Github.ShareDialog" timestamp="1589214699188">
@@ -256,14 +300,14 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="345" key="SettingsEditor/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589208413836" />
-    <state x="872" y="433" key="Vcs.Push.Dialog.v2" timestamp="1589220697172">
+    <state x="872" y="433" key="Vcs.Push.Dialog.v2" timestamp="1589221470122">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="433" key="Vcs.Push.Dialog.v2/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589220697172" />
-    <state x="1089" y="614" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1589220662502">
+    <state x="872" y="433" key="Vcs.Push.Dialog.v2/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589221470122" />
+    <state x="1089" y="614" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1589221405830">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1089" y="614" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589220662502" />
+    <state x="1089" y="614" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.2560.1400/-1920.206.1920.1040/2560.190.1920.1040@0.0.2560.1400" timestamp="1589221405830" />
     <state x="943" y="315" width="672" height="678" key="search.everywhere.popup" timestamp="1589220181869">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
