@@ -16,7 +16,7 @@ namespace MiBand2DLL.lib
             public static readonly Guid HR_CONTROL_POINT_CHARACTERISTIC =
                 new Guid("00002a39-0000-1000-8000-00805f9b34fb");
 
-            public static readonly Guid AUTH_SERVICE = new Guid("0000FEE1-0000-1000-8000-00805F9B34FB");
+            public static readonly Guid AUTH_SERVICE = new Guid("0000fee1-0000-1000-8000-00805f9b34fb");
             public static readonly Guid AUTH_CHARACTERISTIC = new Guid("00000009-0000-3512-2118-0009af100700");
 
             public static readonly byte[] AUTH_SECRET_KEY =

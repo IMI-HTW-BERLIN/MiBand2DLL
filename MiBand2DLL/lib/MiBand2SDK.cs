@@ -15,7 +15,7 @@ namespace MiBand2DLL.lib
     {
         public Identity Identity = new Identity();
         public HeartRate HeartRate = new HeartRate();
-        
+
         /// <summary>
         /// Connect to paired device
         /// </summary>
@@ -27,8 +27,8 @@ namespace MiBand2DLL.lib
 
             if (device != null)
             {
-                Gatt.bluetoothLEDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
-                return Gatt.bluetoothLEDevice != null;
+                Gatt.BluetoothLeDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
+                return Gatt.BluetoothLeDevice != null;
             }
 
             return false;
@@ -43,8 +43,8 @@ namespace MiBand2DLL.lib
         {
             if (deviceInfo != null)
             {
-                Gatt.bluetoothLEDevice = await BluetoothLEDevice.FromIdAsync(deviceInfo.Id);
-                return Gatt.bluetoothLEDevice != null;
+                Gatt.BluetoothLeDevice = await BluetoothLEDevice.FromIdAsync(deviceInfo.Id);
+                return Gatt.BluetoothLeDevice != null;
             }
 
             return false;
@@ -55,10 +55,11 @@ namespace MiBand2DLL.lib
         /// </summary>
         public async Task UnpairDeviceAsync()
         {
-            if (Gatt.bluetoothLEDevice != null)
-                await Gatt.bluetoothLEDevice.DeviceInformation.Pairing.UnpairAsync();
+            if (Gatt.BluetoothLeDevice != null)
+                await Gatt.BluetoothLeDevice.DeviceInformation.Pairing.UnpairAsync();
         }
 
-        public bool IsConnected() => Gatt.bluetoothLEDevice != null && Gatt.bluetoothLEDevice.ConnectionStatus == BluetoothConnectionStatus.Connected;
+        public bool IsConnected() => Gatt.BluetoothLeDevice != null &&
+                                     Gatt.BluetoothLeDevice.ConnectionStatus == BluetoothConnectionStatus.Connected;
     }
 }

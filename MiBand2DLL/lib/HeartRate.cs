@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Foundation;
-using MiBand2DLL.lib;
 
 namespace MiBand2DLL.lib
 {
@@ -73,12 +71,15 @@ namespace MiBand2DLL.lib
 
         private async Task InitializeCharacteristics()
         {
-            _hrMeasurementCharacteristic =
-                await Gatt.GetCharacteristicByServiceUuid(Consts.Guids.HR_SERVICE,
-                    Consts.Guids.HR_MEASUREMENT_CHARACTERISTIC);
-            _hrControlPointCharacteristic =
-                await Gatt.GetCharacteristicByServiceUuid(Consts.Guids.HR_SERVICE,
-                    Consts.Guids.HR_CONTROL_POINT_CHARACTERISTIC);
+            GattCharacteristicsResult characteristics =
+                await Gatt.GetAllCharacteristicsFromService(Consts.Guids.HR_SERVICE);
+            foreach (GattCharacteristic gattCharacteristic in characteristics.Characteristics)
+            {
+                if (gattCharacteristic.Uuid == Consts.Guids.HR_MEASUREMENT_CHARACTERISTIC)
+                    _hrMeasurementCharacteristic = gattCharacteristic;
+                else if (gattCharacteristic.Uuid == Consts.Guids.HR_CONTROL_POINT_CHARACTERISTIC)
+                    _hrControlPointCharacteristic = gattCharacteristic;
+            }
         }
 
         /// <summary>

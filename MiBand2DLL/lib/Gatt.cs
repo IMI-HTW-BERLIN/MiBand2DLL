@@ -17,7 +17,7 @@ namespace MiBand2DLL.lib
         /// Property, responsive to connection with band via GATT protocol.
         /// If device is not connected to phone, property will be null.
         /// </summary>
-        public static BluetoothLEDevice bluetoothLEDevice { get; set; }
+        public static BluetoothLEDevice BluetoothLeDevice { get; set; }
 
         /// <summary>
         /// Get GATT characteristic by service UUID.
@@ -27,18 +27,23 @@ namespace MiBand2DLL.lib
         /// <param name="serviceUuid">GATT Service UUID</param>
         /// <param name="characteristicUuid">GATT Characteristic UUID</param>
         /// <returns>GattCharacteristic object if characteristic is exists, else returns null</returns>
-        public static async Task<GattCharacteristic> GetCharacteristicByServiceUuid(Guid serviceUuid, Guid characteristicUuid)
+        public static async Task<GattCharacteristic> GetCharacteristicByServiceUuid(Guid serviceUuid,
+            Guid characteristicUuid)
         {
-            if (bluetoothLEDevice == null)
+            if (BluetoothLeDevice == null)
                 throw new Exception("Cannot get characteristic from service: Device is disconnected.");
 
-            GattDeviceServicesResult service = await bluetoothLEDevice.GetGattServicesForUuidAsync(serviceUuid);
-            GattCharacteristicsResult currentCharacteristicResult = await service.Services[0].GetCharacteristicsForUuidAsync(characteristicUuid);
+            GattDeviceServicesResult service = await BluetoothLeDevice.GetGattServicesForUuidAsync(serviceUuid);
+            GattCharacteristicsResult currentCharacteristicResult =
+                await service.Services[0].GetCharacteristicsForUuidAsync(characteristicUuid);
+
             GattCharacteristic characteristic;
 
-            if (currentCharacteristicResult.Status == GattCommunicationStatus.AccessDenied || currentCharacteristicResult.Status == GattCommunicationStatus.ProtocolError)
+            if (currentCharacteristicResult.Status == GattCommunicationStatus.AccessDenied ||
+                currentCharacteristicResult.Status == GattCommunicationStatus.ProtocolError)
             {
-                Debug.WriteLine($"Error while getting characteristic: {characteristicUuid.ToString()} - {currentCharacteristicResult.Status}");
+                Debug.WriteLine(
+                    $"Error while getting characteristic: {characteristicUuid.ToString()} - {currentCharacteristicResult.Status}");
                 characteristic = null;
             }
             else
@@ -54,10 +59,10 @@ namespace MiBand2DLL.lib
         /// <returns></returns>
         public static async Task<GattCharacteristicsResult> GetAllCharacteristicsFromService(Guid serviceUuid)
         {
-            if (bluetoothLEDevice == null)
+            if (BluetoothLeDevice == null)
                 throw new Exception("Cannot get characteristic from service: Device is disconnected.");
 
-            var service = await bluetoothLEDevice.GetGattServicesForUuidAsync(serviceUuid);
+            GattDeviceServicesResult service = await BluetoothLeDevice.GetGattServicesForUuidAsync(serviceUuid);
             return await service.Services[0].GetCharacteristicsAsync();
         }
 
@@ -68,10 +73,10 @@ namespace MiBand2DLL.lib
         /// <returns></returns>
         public static async Task<GattDeviceServicesResult> GetServiceByUuid(Guid serviceUuid)
         {
-            if (bluetoothLEDevice == null)
+            if (BluetoothLeDevice == null)
                 throw new Exception("Cannot get characteristic from service: Device is disconnected.");
 
-            return await bluetoothLEDevice.GetGattServicesForUuidAsync(serviceUuid);
+            return await BluetoothLeDevice.GetGattServicesForUuidAsync(serviceUuid);
         }
     }
 }
