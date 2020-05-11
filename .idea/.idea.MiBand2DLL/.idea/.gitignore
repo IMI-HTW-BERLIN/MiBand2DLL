@@ -479,4 +479,5 @@ MigrationBackup/
 # End of https://www.gitignore.io/api/rider,macos,windows,visualstudio
 
 # CUSTOM
-MiBand2DLL/bin/Debug/MiBand2DLL.dll
+**/bin/
+**/obj/
