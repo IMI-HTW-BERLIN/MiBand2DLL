@@ -11,18 +11,22 @@ namespace MiBand2ExecutableForTesting
             InitializeComponent();
         }
 
+        private async void ConnectBandButtonClicked(object sender, EventArgs e) => await MiBand2.ConnectToBand();
+
         private async void GetHRButtonClicked(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("Connecting to band...");
-            if(await MiBand2.ConnectToBand())
-                System.Diagnostics.Debug.WriteLine("Connected");
-            else
-                System.Diagnostics.Debug.WriteLine("Could not connect! :(");
-            
-            System.Diagnostics.Debug.WriteLine("Getting heart beat...");
-            int heartRate = await MiBand2.GetHeartRateAsync();
-            
-            System.Diagnostics.Debug.WriteLine("Current heart rate: " + heartRate);
+            await MiBand2.StartHeartRateMeasureContinuous();
+            MiBand2.SubscribeToHeartRateChange(OnHeartRateChange);
+
+            void OnHeartRateChange(int newHeartRate)
+            {
+                textBox1.Text = newHeartRate.ToString();
+            }
         }
+
+        private async void AskForTouchButtonClicked(object sender, EventArgs e) => await MiBand2.AskUserForTouch();
+
+        private async void StopMeasurementButtonClicked(object sender, EventArgs e) =>
+            await MiBand2.StopAllMeasurements();
     }
 }

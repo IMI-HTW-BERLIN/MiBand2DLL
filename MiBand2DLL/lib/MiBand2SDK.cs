@@ -11,10 +11,11 @@ namespace MiBand2DLL.lib
     /// Some of the following code was taken, refactored and adjusted for our own purposes from:
     /// https://github.com/AL3X1/Mi-Band-2-SDK
     /// </summary>
-    public class MiBand2SDk
+    public class MiBand2SDK
     {
-        public Identity Identity = new Identity();
-        public HeartRate HeartRate = new HeartRate();
+        public HeartRate HeartRate { get; } = new HeartRate();
+        public Identity Identity { get; } = new Identity();
+
 
         /// <summary>
         /// Connect to paired device
@@ -22,44 +23,19 @@ namespace MiBand2DLL.lib
         /// <returns></returns>
         public async Task<bool> ConnectAsync()
         {
-            Identity auth = new Identity();
-            DeviceInformation device = await auth.GetPairedBand();
+            DeviceInformation device = await Identity.GetPairedBand();
 
-            if (device != null)
-            {
-                Gatt.BluetoothLeDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
-                return Gatt.BluetoothLeDevice != null;
-            }
+            if (device == null)
+                return false;
 
-            return false;
+            Gatt.BluetoothLeDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
+            return Gatt.BluetoothLeDevice != null;
         }
 
         /// <summary>
-        /// Connect to device by id
+        /// Authenticates the connection to the band. Needed for receiving data and sending commands.
         /// </summary>
-        /// <param name="deviceInfo"></param>
-        /// <returns></returns>
-        public async Task<bool> ConnectAsync(DeviceInformation deviceInfo)
-        {
-            if (deviceInfo != null)
-            {
-                Gatt.BluetoothLeDevice = await BluetoothLEDevice.FromIdAsync(deviceInfo.Id);
-                return Gatt.BluetoothLeDevice != null;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Unpair band from device
-        /// </summary>
-        public async Task UnpairDeviceAsync()
-        {
-            if (Gatt.BluetoothLeDevice != null)
-                await Gatt.BluetoothLeDevice.DeviceInformation.Pairing.UnpairAsync();
-        }
-
-        public bool IsConnected() => Gatt.BluetoothLeDevice != null &&
-                                     Gatt.BluetoothLeDevice.ConnectionStatus == BluetoothConnectionStatus.Connected;
+        /// <returns>Whether the authentication was successful</returns>
+        public async Task<bool> AuthenticateAsync() => await Identity.AuthenticateAsync();
     }
 }

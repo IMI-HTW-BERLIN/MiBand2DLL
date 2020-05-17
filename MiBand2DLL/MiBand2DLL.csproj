@@ -61,6 +61,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="lib\ClassExtension.cs"/>
     <Compile Include="lib\Gatt.cs" />
     <Compile Include="lib\Consts.cs" />
     <Compile Include="lib\HeartRate.cs" />

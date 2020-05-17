@@ -1,189 +1,151 @@
 ﻿using System;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using Windows.Foundation;
 
 namespace MiBand2DLL.lib
 {
     /// TODO: Update/Add comments and summaries.
+    /// TODO: HANDLE DISCONNECTION. UNSUBSCRIBE ON DISCONNECTION.
     /// <summary>
     /// Some of the following code was taken, refactored and adjusted for our own purposes from:
     /// https://github.com/AL3X1/Mi-Band-2-SDK
     /// </summary>
     public class HeartRate
     {
-        public enum HRMeasurementType { Single = 0, Continuous = 1 }
-
+        /// <summary>
+        /// Last measured heart rate. Can be used to simply get the last measured heart rate.
+        /// </summary>
         public int LastHeartRate { get; private set; }
 
 
-        private EventWaitHandle _WaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        /// <summary>
+        /// Event for changing <see cref="LastHeartRate"/>. Will be invoked whenever a new heart rate is measured.
+        /// </summary>
+        public event HeartRateDelegate OnHeartRateChange;
 
+        public delegate void HeartRateDelegate(int newHeartRate);
+
+        /// <summary>
+        /// Heart-Rate-Measurement-Characteristic is used for listening for new heart rate measurements.
+        /// </summary>
         private GattCharacteristic _hrMeasurementCharacteristic;
+
+        /// <summary>
+        /// Heart-Rate-ControlPoint-Characteristic is used for controlling the heart-rate-functionality of the band.
+        /// It enables/disables measurements.
+        /// </summary>
         private GattCharacteristic _hrControlPointCharacteristic;
 
+        /// <summary>
+        /// Basic Sensor-Characteristic used to start the continuous heart-rate-measurement.
+        /// </summary>
+        private GattCharacteristic _sensorCharacteristic;
+
+        /// <summary>
+        /// Whether <see cref="_hrMeasurementCharacteristic"/> and <see cref="_hrControlPointCharacteristic"/> are initialized.
+        /// </summary>
         private bool CharacteristicsInitialized =>
-            _hrMeasurementCharacteristic != null && _hrControlPointCharacteristic != null;
+            _hrMeasurementCharacteristic != null && _hrControlPointCharacteristic != null &&
+            _sensorCharacteristic != null;
+
+        private bool _measureHeartRateContinuous;
 
         /// <summary>
-        /// Subscribe to HeartRate notifications from band.
+        /// Starts the continuous heart rate measurement by repeatedly requesting new ones.
         /// </summary>
-        public async Task SubscribeToHeartRateNotificationsAsync()
-        {
-            _hrMeasurementCharacteristic = await Gatt.GetCharacteristicByServiceUuid(Consts.Guids.HR_SERVICE,
-                Consts.Guids.HR_MEASUREMENT_CHARACTERISTIC);
-            if (await _hrMeasurementCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-                GattClientCharacteristicConfigurationDescriptorValue.Notify) == GattCommunicationStatus.Success)
-                _hrMeasurementCharacteristic.ValueChanged += HrMeasurementCharacteristicValueChanged;
-        }
-
-        /// <summary>
-        /// Subscribe to HeartRate notifications from band.
-        /// </summary>
-        /// <param name="eventHandler">Handler for interact with heartRate values</param>
-        /// <returns></returns>
-        public async Task SubscribeToHeartRateNotificationsAsync(
-            TypedEventHandler<GattCharacteristic, GattValueChangedEventArgs> eventHandler)
-        {
-            _hrMeasurementCharacteristic =
-                await Gatt.GetCharacteristicByServiceUuid(Consts.Guids.HR_SERVICE,
-                    Consts.Guids.HR_MEASUREMENT_CHARACTERISTIC);
-
-            if (await _hrMeasurementCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-                GattClientCharacteristicConfigurationDescriptorValue.Notify) == GattCommunicationStatus.Success)
-                _hrMeasurementCharacteristic.ValueChanged += eventHandler;
-        }
-
-        /// <summary>
-        /// Measure current heart rate
-        /// </summary>
-        /// <returns></returns>
-        public async Task<int> GetHeartRateAsync()
-        {
-            int heartRate = 0;
-            if (await StartHeartRateMeasurementAsync() == GattCommunicationStatus.Success)
-                heartRate = LastHeartRate;
-
-            return heartRate;
-        }
-
-        private async Task InitializeCharacteristics()
-        {
-            GattCharacteristicsResult characteristics =
-                await Gatt.GetAllCharacteristicsFromService(Consts.Guids.HR_SERVICE);
-            foreach (GattCharacteristic gattCharacteristic in characteristics.Characteristics)
-            {
-                if (gattCharacteristic.Uuid == Consts.Guids.HR_MEASUREMENT_CHARACTERISTIC)
-                    _hrMeasurementCharacteristic = gattCharacteristic;
-                else if (gattCharacteristic.Uuid == Consts.Guids.HR_CONTROL_POINT_CHARACTERISTIC)
-                    _hrControlPointCharacteristic = gattCharacteristic;
-            }
-        }
-
-        /// <summary>
-        /// Starting heart rate measurement
-        /// </summary>
-        /// <returns></returns>
-        private async Task<GattCommunicationStatus> StartHeartRateMeasurementAsync()
+        public async Task StartContinuousHeartRateMeasurementAsync()
         {
             if (!CharacteristicsInitialized)
                 await InitializeCharacteristics();
 
-            GattCommunicationStatus status = GattCommunicationStatus.ProtocolError;
+            // Stop everything
+            await StopAllMeasurements();
 
-            GattCommunicationStatus gattStatus =
-                await _hrMeasurementCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
+            // Start continuous hr measurement
+            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_START_CONTINUOUS_COMMAND
+                .AsBuffer());
 
-            if (gattStatus != GattCommunicationStatus.Success)
-                return status;
+            // Needed to actually start the continuous measurement TODO: Really needed?
+            byte[] startCommand = {0x02};
+            await _sensorCharacteristic.WriteValueAsync(startCommand.AsBuffer());
 
-            gattStatus =
-                await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_START_COMMAND.AsBuffer());
+            // Listen for new heart rate measurement
+            _measureHeartRateContinuous = true;
+            _hrMeasurementCharacteristic.ValueChanged += HeartRateReceived;
+        }
 
-            if (gattStatus != GattCommunicationStatus.Success)
-                return status;
-
-            _hrMeasurementCharacteristic.ValueChanged += HrMeasurementCharacteristicValueChanged;
-            status = GattCommunicationStatus.Success;
-            _WaitHandle.WaitOne();
-
-            return status;
+        public async Task StopAllMeasurements()
+        {
+            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_STOP_SINGLE_COMMAND.AsBuffer());
+            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_STOP_CONTINUOUS_COMMAND.AsBuffer());
+            if (_measureHeartRateContinuous)
+            {
+                _measureHeartRateContinuous = false;
+                _hrMeasurementCharacteristic.ValueChanged -= HeartRateReceived;
+            }
         }
 
         /// <summary>
-        /// Handle incoming requests with heart rate from the band.
+        /// Start single heart rate measurement. After completion, <see cref="LastHeartRate"/> will be updated with the
+        /// new heart rate.
+        /// </summary>
+        public async Task StartSingleHeartRateMeasurementAsync()
+        {
+            if (!CharacteristicsInitialized)
+                await InitializeCharacteristics();
+
+            // Stop everything
+            await StopAllMeasurements();
+
+            // Start single hr measurement
+            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_START_SINGLE_COMMAND.AsBuffer());
+
+            // Listen for new heart rate measurement
+            _measureHeartRateContinuous = false;
+            _hrMeasurementCharacteristic.ValueChanged += HeartRateReceived;
+        }
+
+        /// <summary>
+        /// Handles incoming measurements from the band.
         /// </summary>
         /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private void HrMeasurementCharacteristicValueChanged(GattCharacteristic sender,
-            GattValueChangedEventArgs args)
+        /// <param name="args">The received hr-measurement</param>
+        private void HeartRateReceived(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            if (sender.Uuid.ToString() == Consts.Guids.HR_MEASUREMENT_CHARACTERISTIC.ToString())
-                LastHeartRate = args.CharacteristicValue.ToArray()[1];
-            _WaitHandle.Set();
-        }
-
-        /// <summary>
-        /// Set continuous heart rate measurements
-        /// </summary>
-        /// <param name="measurementsType"></param>
-        /// <returns></returns>
-        public async Task<GattCommunicationStatus> SetContinuousHeartRateMeasurement(
-            HRMeasurementType measurementsType)
-        {
-            if (!CharacteristicsInitialized)
-                await InitializeCharacteristics();
-
-            GattCommunicationStatus status = GattCommunicationStatus.ProtocolError;
-
-            GattCommunicationStatus gattStatus =
-                await _hrMeasurementCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
-
-            if (gattStatus != GattCommunicationStatus.Success)
-                return status;
-
-            byte[] manualCmd;
-            byte[] continuousCmd;
-
-            if (measurementsType == HRMeasurementType.Continuous)
-            {
-                manualCmd = new byte[] {0x15, 0x02, 0};
-                continuousCmd = new byte[] {0x15, 0x01, 1};
-            }
+            LastHeartRate = args.CharacteristicValue.ToArray()[1];
+            OnHeartRateChange?.Invoke(LastHeartRate);
+            // TODO: Test how often this is needed
+            if (_measureHeartRateContinuous)
+                SendNextHRRequest().Wait();
             else
-            {
-                manualCmd = new byte[] {0x15, 0x02, 1};
-                continuousCmd = new byte[] {0x15, 0x01, 0};
-            }
-
-            if (await _hrControlPointCharacteristic.WriteValueAsync(manualCmd.AsBuffer()) !=
-                GattCommunicationStatus.Success ||
-                await _hrControlPointCharacteristic.WriteValueAsync(continuousCmd.AsBuffer()) !=
-                GattCommunicationStatus.Success)
-                return status;
-
-            status = GattCommunicationStatus.Success;
-            _hrMeasurementCharacteristic.ValueChanged += HrMeasurementCharacteristicValueChanged;
-
-            return status;
+                _hrMeasurementCharacteristic.ValueChanged -= HeartRateReceived;
         }
 
         /// <summary>
-        /// Sets Heart Rate Measurement interval in minutes (0 is off)
+        /// Sends a request to measure the heart rate again.
+        /// Used by <see cref="StartContinuousHeartRateMeasurementAsync"/>.
         /// </summary>
-        /// <param name="minutes"></param>
-        /// <returns></returns>
-        public async Task<bool> SetHeartRateMeasurementInterval(int minutes)
+        private async Task SendNextHRRequest() =>
+            await _hrControlPointCharacteristic.WriteValueAsync(new byte[] {0x16}.AsBuffer());
+
+        /// <summary>
+        /// Initializes all characteristics.
+        /// </summary>
+        private async Task InitializeCharacteristics()
         {
+            GattDeviceService service = await Gatt.GetServiceByUuid(Consts.Guids.HR_SERVICE);
+
+            _hrMeasurementCharacteristic =
+                await Gatt.GetCharacteristicFromUuid(service, Consts.Guids.HR_MEASUREMENT_CHARACTERISTIC);
             _hrControlPointCharacteristic =
-                await Gatt.GetCharacteristicByServiceUuid(Consts.Guids.HR_SERVICE,
-                    Consts.Guids.HR_CONTROL_POINT_CHARACTERISTIC);
-            return await _hrControlPointCharacteristic.WriteValueAsync(
-                new byte[] {0x14, (byte) minutes}.AsBuffer()) == GattCommunicationStatus.Success;
+                await Gatt.GetCharacteristicFromUuid(service, Consts.Guids.HR_CONTROL_POINT_CHARACTERISTIC);
+            _sensorCharacteristic =
+                await Gatt.GetCharacteristicFromUuid(Consts.Guids.SENSOR_SERVICE, Consts.Guids.SENSOR_CHARACTERISTIC);
+
+            // Enable notification for heart rate measurements
+            await _hrMeasurementCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+                GattClientCharacteristicConfigurationDescriptorValue.Notify);
         }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,14 +19,9 @@ namespace MiBand2DLL.lib
     /// </summary>
     public class Identity
     {
-        /// <summary>
-        /// Check if band reached Auth-Level 1 (tap on the band)
-        /// </summary>
-        public bool IsAuthenticated { get; private set; }
-
         private GattCharacteristic _authCharacteristic;
         private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
-        
+        private bool lastAuthenticationSuccessfull;
 
         /// <summary>
         /// Get already paired to device MI Band 2
@@ -36,7 +29,8 @@ namespace MiBand2DLL.lib
         /// <returns>DeviceInformation with Band data. If device is not paired, returns null</returns>
         public async Task<DeviceInformation> GetPairedBand()
         {
-            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(BluetoothLEDevice.GetDeviceSelector());
+            DeviceInformationCollection devices =
+                await DeviceInformation.FindAllAsync(BluetoothLEDevice.GetDeviceSelector());
             DeviceInformation deviceInfo = null;
 
             foreach (DeviceInformation device in devices)
@@ -58,101 +52,96 @@ namespace MiBand2DLL.lib
         /// <returns></returns>
         public async Task<bool> AuthenticateAsync()
         {
-            _authCharacteristic = await Gatt.GetCharacteristicByServiceUuid(Consts.Guids.AUTH_SERVICE, Consts.Guids.AUTH_CHARACTERISTIC);
-            await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
-            
-            // Authenticate on Level-1
-            if (!IsAuthenticated)
+            if (_authCharacteristic == null)
             {
-                List<byte> sendKey = new List<byte> {0x01, 0x08};
-                sendKey.AddRange(Consts.Guids.AUTH_SECRET_KEY);
-
-                if (await _authCharacteristic.WriteValueAsync(sendKey.ToArray().AsBuffer()) !=
-                    GattCommunicationStatus.Success)
-                    return false;
+                _authCharacteristic =
+                    await Gatt.GetCharacteristicFromUuid(Consts.Guids.AUTH_SERVICE, Consts.Guids.AUTH_CHARACTERISTIC);
+                await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
             }
-            
-            _authCharacteristic.ValueChanged += AuthCharacteristic_ValueChanged;
 
-            _waitHandle.WaitOne();
-            return IsAuthenticated;
+
+            // Authenticate on Level-1 (Tap on band)
+            List<byte> authKey = new List<byte>(Consts.Auth.AUTH_KEY);
+            authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
+
+            if (!await SendUserHandshakeRequest(true))
+                return false;
+
+            lastAuthenticationSuccessfull = false;
+            return true;
         }
 
         /// <summary>
-        /// AuthCharacteristic handler. Checking input requests to device from Band
+        /// Sends a request to the band that will ask the user to touch the band. Also known as Level-1 Authentication.
+        /// can be used to
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> SendUserHandshakeRequest(bool inAuthenticationProcess)
+        {
+            List<byte> authKey = new List<byte>(Consts.Auth.AUTH_KEY);
+            authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
+            if (inAuthenticationProcess)
+                _authCharacteristic.ValueChanged += ListenForAuthMessage;
+            else
+                _authCharacteristic.ValueChanged += ListenForAuthMessageOneTime;
+
+
+            GattCommunicationStatus status = await _authCharacteristic.WriteValueAsync(authKey.ToArray().AsBuffer());
+            _waitHandle.WaitOne();
+            return status == GattCommunicationStatus.Success;
+        }
+
+        private void ListenForAuthMessageOneTime(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            _authCharacteristic.ValueChanged -= ListenForAuthMessageOneTime;
+            byte[] bandMessages = args.CharacteristicValue.ToArray();
+            if (bandMessages[2] == Consts.Auth.AUTH_SUCCESS)
+                _waitHandle.Set();
+        }
+
+        /// <summary>
+        /// Checks each authentication-progress-level between band and program. Will be called every "level"
         /// </summary>
         /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private async void AuthCharacteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
+        /// <param name="args">Data received from the band</param>
+        private async void ListenForAuthMessage(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            if (sender.Uuid == Consts.Guids.AUTH_CHARACTERISTIC)
+            byte[] bandMessages = args.CharacteristicValue.ToArray();
+            byte messageType = bandMessages[0];
+            byte lastMessageReceived = bandMessages[1];
+            byte messageStatus = bandMessages[2];
+
+            // Check if current message is a authentication response and if it was successful
+            if (messageType != Consts.Auth.AUTH_RESPONSE || messageStatus == Consts.Auth.AUTH_FAIL)
+                _waitHandle.Set();
+
+
+            switch (lastMessageReceived)
             {
-                List<byte> request = args.CharacteristicValue.ToArray().ToList();
-                byte authResponse = 0x10;
-                byte authSendKey = 0x01;
-                byte authRequestRandomAuthNumber = 0x02;
-                byte authRequestEncryptedKey = 0x03;
-                byte authSuccess = 0x01;
-                byte authFail = 0x04;
-
-                if (request[2] == authFail)
-                {
-                    Debug.WriteLine("Authentication error");
+                case Consts.Auth.AUTH_KEY_RECEIVED:
+                    if (!await SendSecondAuthKey())
+                        _waitHandle.Set();
+                    break;
+                case Consts.Auth.AUTH_SECOND_KEY_RECEIVED:
+                    if (!await SendEncryptedRandomKeyAsync(args))
+                        _waitHandle.Set();
+                    break;
+                case Consts.Auth.AUTH_ENCRYPTED_KEY_RECEIVED:
+                    lastAuthenticationSuccessfull = true;
+                    _authCharacteristic.ValueChanged -= ListenForAuthMessage;
                     _waitHandle.Set();
-                }
-
-                if (request[0] == authResponse && request[1] == authSendKey && request[2] == authSuccess)
-                {
-                    Debug.WriteLine("Level 2 started");
-
-                    if (await SendAuthKey())
-                        Debug.WriteLine("Level 2 success");
-                }
-                else if (request[0] == authResponse && request[1] == authRequestRandomAuthNumber && request[2] == authSuccess)
-                {
-                    Debug.WriteLine("Level 3 started");
-
-                    if (await SendEncryptedRandomKeyAsync(args))
-                        Debug.WriteLine("Level 3 success");
-                }
-                else if (request[0] == authResponse && request[1] == authRequestEncryptedKey && request[2] == authSuccess)
-                {
-                    Debug.WriteLine("Authentication completed");
-                    IsAuthenticated = true;
-                    _waitHandle.Set();
-                }
+                    break;
             }
         }
 
         /// <summary>
-        /// Encrypt Secret key and last 16 bytes from response in AES/ECB/NoPadding Encryption.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        private byte[] Encrypt(byte[] data)
-        {
-            byte[] secretKey = new byte[] { 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45 };
-            IBuffer key = secretKey.AsBuffer();
-            SymmetricKeyAlgorithmProvider algorithmProvider = SymmetricKeyAlgorithmProvider.OpenAlgorithm(SymmetricAlgorithmNames.AesEcb);
-            CryptographicKey ckey = algorithmProvider.CreateSymmetricKey(key);
-
-            IBuffer buffEncrypt = CryptographicEngine.Encrypt(ckey, data.AsBuffer(), null);
-            return buffEncrypt.ToArray();
-        }
-
-        /// <summary>
-        /// Sending auth number to band (Auth Level 2)
+        /// Sending second auth number to band (Auth Level 2)
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> SendAuthKey()
-        {
-            Debug.WriteLine("Sending Auth Number");
-            List<byte> authNumber = new List<byte>();
-            authNumber.Add(0x02);
-            authNumber.Add(0x08);
-
-            return await _authCharacteristic.WriteValueAsync(authNumber.ToArray().AsBuffer()) == GattCommunicationStatus.Success;
-        }
+        private async Task<bool> SendSecondAuthKey() =>
+            await _authCharacteristic.WriteValueAsync(Consts.Auth.AUTH_SECOND_KEY.AsBuffer()) ==
+            GattCommunicationStatus.Success;
 
         /// <summary>
         /// Sending Encrypted random key to band (Auth Level 3)
@@ -162,20 +151,33 @@ namespace MiBand2DLL.lib
         private async Task<bool> SendEncryptedRandomKeyAsync(GattValueChangedEventArgs args)
         {
             List<byte> randomKey = new List<byte>();
-            List<byte> relevantResponsePart = new List<byte>();
-            var responseValue = args.CharacteristicValue.ToArray();
-
-            for (int i = 0; i < responseValue.Count(); i++)
-            {
-                if (i >= 3)
-                    relevantResponsePart.Add(responseValue[i]);
-            }
+            byte[] responseValue = args.CharacteristicValue.ToArray();
+            byte[] relevantResponsePart = new byte[0];
+            if (responseValue.Length >= 3)
+                relevantResponsePart = responseValue.SubArray(3, responseValue.Length - 3);
 
             randomKey.Add(0x03);
             randomKey.Add(0x08);
-            randomKey.AddRange(Encrypt(relevantResponsePart.ToArray()));
+            randomKey.AddRange(Encrypt(relevantResponsePart));
 
-            return await _authCharacteristic.WriteValueAsync(randomKey.ToArray().AsBuffer()) == GattCommunicationStatus.Success;
+            return await _authCharacteristic.WriteValueAsync(randomKey.ToArray().AsBuffer()) ==
+                   GattCommunicationStatus.Success;
+        }
+
+        /// <summary>
+        /// Encrypt Secret key and last 16 bytes from response in AES/ECB/NoPadding Encryption.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private byte[] Encrypt(byte[] data)
+        {
+            IBuffer key = Consts.Auth.AUTH_SECRET_KEY.AsBuffer();
+            SymmetricKeyAlgorithmProvider algorithmProvider =
+                SymmetricKeyAlgorithmProvider.OpenAlgorithm(SymmetricAlgorithmNames.AesEcb);
+            CryptographicKey cKey = algorithmProvider.CreateSymmetricKey(key);
+
+            IBuffer buffEncrypt = CryptographicEngine.Encrypt(cKey, data.AsBuffer(), null);
+            return buffEncrypt.ToArray();
         }
     }
 }
