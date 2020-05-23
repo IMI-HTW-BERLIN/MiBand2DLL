@@ -2,8 +2,13 @@
 
 namespace MiBand2DLL.lib
 {
-    public static class Consts
+    internal static class Consts
     {
+        public static class General
+        {
+            public const string MI_BAND_NAME = "MI Band 2";
+        }
+
         /// Service UUID can be taken from unofficial MIBand2-Protocol:
         /// https://github.com/aashari/mi-band-2/blob/master/README.md
         public static class Guids

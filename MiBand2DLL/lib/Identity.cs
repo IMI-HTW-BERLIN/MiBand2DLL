@@ -5,91 +5,98 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using Windows.Devices.Enumeration;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
+using MiBand2DLL.util;
 
 namespace MiBand2DLL.lib
 {
     /// TODO: Update/Add comments and summaries.
     /// TODO: Finish clean-up/refactoring.
     /// <summary>
-    /// Some of the following code was taken, refactored and adjusted for our own purposes from:
-    /// https://github.com/AL3X1/Mi-Band-2-SDK
+    /// Following code was partially inspired by
+    /// https://github.com/AL3X1/Mi-Band-2-SDK, 
+    /// https://github.com/aashari/mi-band-2 and 
+    /// https://github.com/creotiv/MiBand2
     /// </summary>
-    public class Identity
+    internal class Identity
     {
+        public bool Authenticated { get; private set; }
+
+        public bool IsInitialized;
+
+        private GattDeviceService _authService;
+
         private GattCharacteristic _authCharacteristic;
+
+
         private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
-        private bool lastAuthenticationSuccessfull;
 
-        /// <summary>
-        /// Get already paired to device MI Band 2
-        /// </summary>
-        /// <returns>DeviceInformation with Band data. If device is not paired, returns null</returns>
-        public async Task<DeviceInformation> GetPairedBand()
+        public async Task<DeviceCommunicationStatus> Initialize(BluetoothLEDevice device)
         {
-            DeviceInformationCollection devices =
-                await DeviceInformation.FindAllAsync(BluetoothLEDevice.GetDeviceSelector());
-            DeviceInformation deviceInfo = null;
+            if (_authCharacteristic != null)
+                return DeviceCommunicationStatus.Success;
 
-            foreach (DeviceInformation device in devices)
-            {
-                //if (device.Pairing.IsPaired && device.Name == "MI Band 2") 
-                //    deviceInfo = device;
-                // HACK: Device is paired even though this returns false, ignore for now and trust that the band is connected :D
-                // TODO: Look into "wrong" status of band-pairing.
-                if (device.Name == "MI Band 2")
-                    deviceInfo = device;
-            }
+            _authService = await Gatt.GetServiceByUuid(device, Consts.Guids.AUTH_SERVICE);
+            // No service, no device.
+            if (_authService == null)
+                return DeviceCommunicationStatus.Disconnected;
 
-            return deviceInfo;
+            _authCharacteristic =
+                await Gatt.GetCharacteristicFromUuid(_authService, Consts.Guids.AUTH_CHARACTERISTIC);
+            // Check if there are services but characteristics can't be accessed.
+            if (_authCharacteristic == default)
+                return DeviceCommunicationStatus.AccessDenied;
+            // Enable notification for user input.
+            await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+                GattClientCharacteristicConfigurationDescriptorValue.Notify);
+
+            IsInitialized = true;
+            return DeviceCommunicationStatus.Success;
+        }
+
+        public async void Dispose()
+        {
+            IsInitialized = false;
+            Authenticated = false;
+            _authService?.Dispose();
+            _authCharacteristic = null;
         }
 
         /// <summary>
-        /// Authentication. If already authenticated, just send AuthNumber and EncryptedKey to band (auth levels 2 and 3)
+        /// Starts the authentication process.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> AuthenticateAsync()
-        {
-            if (_authCharacteristic == null)
-            {
-                _authCharacteristic =
-                    await Gatt.GetCharacteristicFromUuid(Consts.Guids.AUTH_SERVICE, Consts.Guids.AUTH_CHARACTERISTIC);
-                await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
-            }
+        public async Task<DeviceCommunicationStatus> AuthenticateAsync() => await SendUserHandshakeRequest(true);
 
-
-            // Authenticate on Level-1 (Tap on band)
-            List<byte> authKey = new List<byte>(Consts.Auth.AUTH_KEY);
-            authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
-
-            if (!await SendUserHandshakeRequest(true))
-                return false;
-
-            lastAuthenticationSuccessfull = false;
-            return true;
-        }
+        /// <summary>
+        /// Will wait until the user touches the band.
+        /// Uses the first level of authentication for user input. Little hack:P
+        /// </summary>
+        /// <returns></returns>
+        public async Task<DeviceCommunicationStatus> AskForUserTouch() => await SendUserHandshakeRequest(false);
 
         /// <summary>
         /// Sends a request to the band that will ask the user to touch the band. Also known as Level-1 Authentication.
-        /// can be used to
+        /// Will wait until the user touches the band!
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> SendUserHandshakeRequest(bool inAuthenticationProcess)
+        private async Task<DeviceCommunicationStatus> SendUserHandshakeRequest(bool inAuthenticationProcess)
         {
-            List<byte> authKey = new List<byte>(Consts.Auth.AUTH_KEY);
-            authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
+            if (_authCharacteristic == null)
+                return DeviceCommunicationStatus.FunctionalityNotInitialized;
+
             if (inAuthenticationProcess)
                 _authCharacteristic.ValueChanged += ListenForAuthMessage;
             else
                 _authCharacteristic.ValueChanged += ListenForAuthMessageOneTime;
 
-
-            GattCommunicationStatus status = await _authCharacteristic.WriteValueAsync(authKey.ToArray().AsBuffer());
+            List<byte> authKey = new List<byte>(Consts.Auth.AUTH_KEY);
+            authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
+            await _authCharacteristic.WriteValueAsync(authKey.ToArray().AsBuffer());
             _waitHandle.WaitOne();
-            return status == GattCommunicationStatus.Success;
+
+            return DeviceCommunicationStatus.Success;
         }
 
         private void ListenForAuthMessageOneTime(GattCharacteristic sender, GattValueChangedEventArgs args)
@@ -120,16 +127,14 @@ namespace MiBand2DLL.lib
             switch (lastMessageReceived)
             {
                 case Consts.Auth.AUTH_KEY_RECEIVED:
-                    if (!await SendSecondAuthKey())
-                        _waitHandle.Set();
+                    await SendSecondAuthKey();
                     break;
                 case Consts.Auth.AUTH_SECOND_KEY_RECEIVED:
-                    if (!await SendEncryptedRandomKeyAsync(args))
-                        _waitHandle.Set();
+                    await SendEncryptedRandomKeyAsync(args);
                     break;
                 case Consts.Auth.AUTH_ENCRYPTED_KEY_RECEIVED:
-                    lastAuthenticationSuccessfull = true;
                     _authCharacteristic.ValueChanged -= ListenForAuthMessage;
+                    Authenticated = true;
                     _waitHandle.Set();
                     break;
             }
@@ -169,7 +174,7 @@ namespace MiBand2DLL.lib
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        private byte[] Encrypt(byte[] data)
+        private static byte[] Encrypt(byte[] data)
         {
             IBuffer key = Consts.Auth.AUTH_SECRET_KEY.AsBuffer();
             SymmetricKeyAlgorithmProvider algorithmProvider =
