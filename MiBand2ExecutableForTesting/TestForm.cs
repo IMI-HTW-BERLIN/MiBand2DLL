@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using MiBand2DLL;
-using MiBand2DLL.util;
 
 namespace MiBand2ExecutableForTesting
 {
@@ -43,7 +42,7 @@ namespace MiBand2ExecutableForTesting
         private async void GetHRButtonClicked(object sender, EventArgs e)
         {
             await MiBand2.InitializeHeartRateFunctionality();
-            DeviceCommunicationStatus status = await MiBand2.StartHeartRateMeasureContinuous();
+            await MiBand2.StartHeartRateMeasureContinuous();
             MiBand2.SubscribeToHeartRateChange(OnHeartRateChange);
 
             void OnHeartRateChange(int newHeartRate)

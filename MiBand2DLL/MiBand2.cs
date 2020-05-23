@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
+using MiBand2DLL.CustomExceptions;
 using MiBand2DLL.lib;
 using MiBand2DLL.util;
 
@@ -28,48 +29,42 @@ namespace MiBand2DLL
 
         private static BluetoothLEDevice _connectedBtDevice;
 
-        public static async Task<DeviceCommunicationStatus> ConnectToDevice(string name = Consts.General.MI_BAND_NAME)
+        public static async Task ConnectToDevice(string name = Consts.General.MI_BAND_NAME)
         {
             DeviceInformationCollection devices =
                 await DeviceInformation.FindAllAsync(BluetoothLEDevice.GetDeviceSelector());
 
             DeviceInformation device = devices.FirstOrDefault(information => information.Name == "MI Band 2");
             if (device == null)
-                return DeviceCommunicationStatus.DeviceNotFound;
+                throw new DeviceNotFoundException("Couldn't find device. Is it paired?");
 
             _connectedBtDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
 
             if (_connectedBtDevice == null)
-                return DeviceCommunicationStatus.Failure;
+                throw new CustomException("Couldn't get BluetoothLEDevice from DeviceInformation. " +
+                                          "Debugging required if this happens.");
 
             _connectedBtDevice.ConnectionStatusChanged += ConnectionStatusChanged;
-
-            return DeviceCommunicationStatus.Success;
         }
 
         public static async Task DisconnectDevice()
         {
             await HeartRate.Dispose();
             Identity.Dispose();
-            _connectedBtDevice.Dispose();
+            _connectedBtDevice?.Dispose();
             _connectedBtDevice = null;
             GC.Collect();
         }
 
-        public static async Task<DeviceCommunicationStatus> AuthenticateBand() => await Identity.AuthenticateAsync();
+        public static async Task AuthenticateBand() => await Identity.AuthenticateAsync();
 
-        public static async Task<DeviceCommunicationStatus> InitializeAuthenticationFunctionality() =>
+        public static async Task InitializeAuthenticationFunctionality() =>
             await Identity.Initialize(_connectedBtDevice);
 
-        public static async Task<DeviceCommunicationStatus> InitializeHeartRateFunctionality()
+        public static async Task InitializeHeartRateFunctionality()
         {
-            if (!Connected)
-                return DeviceCommunicationStatus.Disconnected;
-
-            if (!Authenticated)
-                return DeviceCommunicationStatus.NotAuthenticated;
-
-            return await HeartRate.Initialize(_connectedBtDevice);
+            if (IsConnectedAndAuthorized())
+                await HeartRate.Initialize(_connectedBtDevice);
         }
 
         /// <summary>
@@ -85,40 +80,45 @@ namespace MiBand2DLL
             return HeartRate.LastHeartRate;
         }
 
-        public static async Task<DeviceCommunicationStatus> StartHeartRateMeasureContinuous()
+        public static async Task StartHeartRateMeasureContinuous()
         {
-            if (!Connected)
-                return DeviceCommunicationStatus.Disconnected;
-
-            if (!Authenticated)
-                return DeviceCommunicationStatus.NotAuthenticated;
-
-            return await HeartRate.StartContinuousHeartRateMeasurementAsync();
+            if (IsConnectedAndAuthorized())
+                await HeartRate.StartContinuousHeartRateMeasurementAsync();
         }
 
-        public static async Task<DeviceCommunicationStatus> StopAllMeasurements()
+        public static async Task StopAllMeasurements()
         {
-            if (!Connected)
-                return DeviceCommunicationStatus.Disconnected;
-
-            if (!Authenticated)
-                return DeviceCommunicationStatus.NotAuthenticated;
-
-            return await HeartRate.StopAllMeasurements();
+            if (IsConnectedAndAuthorized())
+                await HeartRate.StopAllMeasurements();
         }
 
         public static void SubscribeToHeartRateChange(Delegates.HeartRateDelegate method) =>
             HeartRate.OnHeartRateChange += method;
 
-        public static async Task<DeviceCommunicationStatus> AskUserForTouch()
+        public static async Task AskUserForTouch()
         {
             if (!Connected)
-                return DeviceCommunicationStatus.Disconnected;
+                throw new DeviceDisconnectedException("The device is currently not connected.");
 
-            return await Identity.AskForUserTouch();
+            await Identity.AskForUserTouch();
         }
 
-        private static void ConnectionStatusChanged(BluetoothLEDevice sender, object args) =>
+        private static async void ConnectionStatusChanged(BluetoothLEDevice sender, object args)
+        {
+            if (!Connected)
+                await DisconnectDevice();
             DeviceConnectionChanged?.Invoke(Connected);
+        }
+
+        private static bool IsConnectedAndAuthorized()
+        {
+            if (!Connected)
+                throw new DeviceDisconnectedException("The device is currently not connected.");
+
+            if (!Authenticated)
+                throw new NotAuthenticatedException("The device is currently not authorized. " +
+                                                    "Make sure to authorize the band before using any functionality");
+            return true;
+        }
     }
 }

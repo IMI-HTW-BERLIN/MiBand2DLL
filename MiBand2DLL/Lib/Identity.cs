@@ -7,7 +7,7 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
-using MiBand2DLL.util;
+using MiBand2DLL.CustomExceptions;
 
 namespace MiBand2DLL.lib
 {
@@ -32,30 +32,29 @@ namespace MiBand2DLL.lib
 
         private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
 
-        public async Task<DeviceCommunicationStatus> Initialize(BluetoothLEDevice device)
+        public async Task Initialize(BluetoothLEDevice device)
         {
             if (_authCharacteristic != null)
-                return DeviceCommunicationStatus.Success;
+                Dispose();
 
             _authService = await Gatt.GetServiceByUuid(device, Consts.Guids.AUTH_SERVICE);
             // No service, no device.
             if (_authService == null)
-                return DeviceCommunicationStatus.Disconnected;
+                throw new DeviceDisconnectedException("Couldn't get service, the device seems to be disconnected.");
 
             _authCharacteristic =
                 await Gatt.GetCharacteristicFromUuid(_authService, Consts.Guids.AUTH_CHARACTERISTIC);
             // Check if there are services but characteristics can't be accessed.
             if (_authCharacteristic == default)
-                return DeviceCommunicationStatus.AccessDenied;
+                throw new AccessDeniedException("Couldn't get characteristics. Services may be accessed atm.");
             // Enable notification for user input.
             await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
                 GattClientCharacteristicConfigurationDescriptorValue.Notify);
 
             IsInitialized = true;
-            return DeviceCommunicationStatus.Success;
         }
 
-        public async void Dispose()
+        public void Dispose()
         {
             IsInitialized = false;
             Authenticated = false;
@@ -67,24 +66,26 @@ namespace MiBand2DLL.lib
         /// Starts the authentication process.
         /// </summary>
         /// <returns></returns>
-        public async Task<DeviceCommunicationStatus> AuthenticateAsync() => await SendUserHandshakeRequest(true);
+        public async Task AuthenticateAsync() => await SendUserHandshakeRequest(true);
 
         /// <summary>
         /// Will wait until the user touches the band.
         /// Uses the first level of authentication for user input. Little hack:P
         /// </summary>
         /// <returns></returns>
-        public async Task<DeviceCommunicationStatus> AskForUserTouch() => await SendUserHandshakeRequest(false);
+        public async Task AskForUserTouch() => await SendUserHandshakeRequest(false);
 
         /// <summary>
         /// Sends a request to the band that will ask the user to touch the band. Also known as Level-1 Authentication.
         /// Will wait until the user touches the band!
         /// </summary>
         /// <returns></returns>
-        private async Task<DeviceCommunicationStatus> SendUserHandshakeRequest(bool inAuthenticationProcess)
+        private async Task SendUserHandshakeRequest(bool inAuthenticationProcess)
         {
             if (_authCharacteristic == null)
-                return DeviceCommunicationStatus.FunctionalityNotInitialized;
+                throw new NotInitializedException(
+                    "Heart rate functionality is not yet initialized. " +
+                    "Make sure it is initialized before calling any auth-related methods.");
 
             if (inAuthenticationProcess)
                 _authCharacteristic.ValueChanged += ListenForAuthMessage;
@@ -95,8 +96,6 @@ namespace MiBand2DLL.lib
             authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
             await _authCharacteristic.WriteValueAsync(authKey.ToArray().AsBuffer());
             _waitHandle.WaitOne();
-
-            return DeviceCommunicationStatus.Success;
         }
 
         private void ListenForAuthMessageOneTime(GattCharacteristic sender, GattValueChangedEventArgs args)
