@@ -2,6 +2,9 @@
 
 namespace MiBand2DLL.lib
 {
+    /// <summary>
+    /// All band related constant data, grouped into different sections.
+    /// </summary>
     internal static class Consts
     {
         public static class General
@@ -9,8 +12,13 @@ namespace MiBand2DLL.lib
             public const string MI_BAND_NAME = "MI Band 2";
         }
 
-        /// Service UUID can be taken from unofficial MIBand2-Protocol:
+        /// <summary>
+        /// UUIDs used for accessing services and characteristics of the band.
+        /// <para>
+        /// UUIDs can be taken from unofficial MIBand2-Protocol:
         /// https://github.com/aashari/mi-band-2/blob/master/README.md
+        /// </para>
+        /// </summary>
         public static class Guids
         {
             public static readonly Guid HR_SERVICE = new Guid("0000180d-0000-1000-8000-00805f9b34fb");
@@ -29,6 +37,9 @@ namespace MiBand2DLL.lib
             public static readonly Guid SENSOR_CHARACTERISTIC = new Guid("00000001-0000-3512-2118-0009af100700");
         }
 
+        /// <summary>
+        /// Commands related to the heart rate functionality.
+        /// </summary>
         public static class HeartRate
         {
             public static readonly byte[] HR_START_CONTINUOUS_COMMAND = {0x15, 0x01, 0x01};
@@ -37,6 +48,9 @@ namespace MiBand2DLL.lib
             public static readonly byte[] HR_STOP_SINGLE_COMMAND = {0x15, 0x02, 0x00};
         }
 
+        /// <summary>
+        /// Commands and response-codes related to the authentication functionality.
+        /// </summary>
         public static class Auth
         {
             public static readonly byte[] AUTH_KEY = {0x01, 0x08};

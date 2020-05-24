@@ -16,15 +16,15 @@ namespace MiBand2ExecutableForTesting
         private async void ConnectBandButtonClicked(object sender, EventArgs e)
         {
             MiBand2.DeviceConnectionChanged += ConnectionStatusChanged;
-            await MiBand2.ConnectToDevice();
-            await MiBand2.InitializeAuthenticationFunctionality();
-            await MiBand2.AuthenticateBand();
+            await MiBand2.ConnectToDeviceAsync();
+            await MiBand2.InitializeAuthenticationFunctionalityAsync();
+            await MiBand2.AuthenticateBandAsync();
         }
 
         private async void DisconnectButtonClicked(object sender, EventArgs e)
         {
+            MiBand2.DisconnectDeviceAsync();
             MiBand2.DeviceConnectionChanged -= ConnectionStatusChanged;
-            await MiBand2.DisconnectDevice();
         }
 
         private void CheckConnectionButtonClicked(object sender, EventArgs e)
@@ -41,8 +41,8 @@ namespace MiBand2ExecutableForTesting
 
         private async void GetHRButtonClicked(object sender, EventArgs e)
         {
-            await MiBand2.InitializeHeartRateFunctionality();
-            await MiBand2.StartHeartRateMeasureContinuous();
+            await MiBand2.InitializeHeartRateFunctionalityAsync();
+            await MiBand2.StartHeartRateMeasureContinuousAsync();
             MiBand2.SubscribeToHeartRateChange(OnHeartRateChange);
 
             void OnHeartRateChange(int newHeartRate)
@@ -51,9 +51,11 @@ namespace MiBand2ExecutableForTesting
             }
         }
 
-        private async void AskForTouchButtonClicked(object sender, EventArgs e) => await MiBand2.AskUserForTouch();
+        private async void AskForTouchButtonClicked(object sender, EventArgs e) => await MiBand2.AskUserForTouchAsync();
 
-        private async void StopMeasurementButtonClicked(object sender, EventArgs e) =>
-            await MiBand2.StopAllMeasurements();
+        private async void StopMeasurementButtonClicked(object sender, EventArgs e)
+        {
+            await MiBand2.StopAllMeasurementsAsync();
+        }
     }
 }

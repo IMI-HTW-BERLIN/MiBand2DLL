@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MiBand2DLL.CustomExceptions
+namespace MiBand2DLL.CustomExceptions.HardwareRelatedExceptions
 {
     [Serializable]
     public class DeviceDisconnectedException : Exception

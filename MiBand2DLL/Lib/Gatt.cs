@@ -7,10 +7,7 @@ using Windows.Devices.Bluetooth.GenericAttributeProfile;
 namespace MiBand2DLL.lib
 {
     /// <summary>
-    /// Following code was partially inspired by
-    /// https://github.com/AL3X1/Mi-Band-2-SDK, 
-    /// https://github.com/aashari/mi-band-2 and 
-    /// https://github.com/creotiv/MiBand2
+    /// Small class that allows to retrieve services and characteristics from the band using the Gatt-Protocol.
     /// </summary>
     internal static class Gatt
     {

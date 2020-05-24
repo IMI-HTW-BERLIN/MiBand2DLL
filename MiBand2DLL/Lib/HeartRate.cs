@@ -3,18 +3,14 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using MiBand2DLL.CustomExceptions;
+using MiBand2DLL.CustomExceptions.HardwareRelatedExceptions;
+using MiBand2DLL.CustomExceptions.SoftwareRelatedException;
 using MiBand2DLL.util;
 
 namespace MiBand2DLL.lib
 {
-    /// TODO: Update/Add comments and summaries.
-    /// TODO: HANDLE DISCONNECTION. UNSUBSCRIBE ON DISCONNECTION.
     /// <summary>
-    /// Following code was partially inspired by
-    /// https://github.com/AL3X1/Mi-Band-2-SDK, 
-    /// https://github.com/aashari/mi-band-2 and 
-    /// https://github.com/creotiv/MiBand2
+    /// Manages the heart rate measuring-functionality, providing methods for starting hear rate measurements.
     /// </summary>
     internal class HeartRate
     {
@@ -62,12 +58,17 @@ namespace MiBand2DLL.lib
         /// </summary>
         private bool _measureHeartRateContinuous;
 
+        /// <summary>
+        /// Whether th heart rate functionality is initialized.
+        /// </summary>
         private bool _isInitialized;
 
         /// <summary>
         /// Initializes all characteristics.
         /// </summary>
-        public async Task Initialize(BluetoothLEDevice device)
+        /// <exception cref="AccessDeniedException"></exception>
+        /// <exception cref="DeviceDisconnectedException"></exception>
+        public async Task InitializeAsync(BluetoothLEDevice device)
         {
             _hrService = await Gatt.GetServiceByUuid(device, Consts.Guids.HR_SERVICE);
             _sensorService = await Gatt.GetServiceByUuid(device, Consts.Guids.SENSOR_SERVICE);
@@ -94,10 +95,11 @@ namespace MiBand2DLL.lib
             _isInitialized = true;
         }
 
-        public async Task Dispose()
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose()
         {
-            if (_isInitialized)
-                await StopAllMeasurements();
             _isInitialized = false;
             _hrService?.Dispose();
             _sensorService?.Dispose();
@@ -109,6 +111,7 @@ namespace MiBand2DLL.lib
         /// <summary>
         /// Starts the continuous heart rate measurement by repeatedly requesting new ones.
         /// </summary>
+        /// <exception cref="NotInitializedException"></exception>
         public async Task StartContinuousHeartRateMeasurementAsync()
         {
             if (!_isInitialized)
@@ -117,7 +120,7 @@ namespace MiBand2DLL.lib
                     "Make sure it is initialized before calling any heart rate related methods.");
 
             // Stop everything
-            await StopAllMeasurements();
+            await StopAllMeasurementsAsync();
 
             // Start continuous hr measurement
             await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_START_CONTINUOUS_COMMAND
@@ -132,7 +135,12 @@ namespace MiBand2DLL.lib
             _hrMeasurementCharacteristic.ValueChanged += HeartRateReceived;
         }
 
-        public async Task StopAllMeasurements()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotInitializedException">Functionality not initialized.</exception>
+        public async Task StopAllMeasurementsAsync()
         {
             if (!_isInitialized)
                 throw new NotInitializedException(
@@ -152,6 +160,7 @@ namespace MiBand2DLL.lib
         /// Start single heart rate measurement. After completion, <see cref="LastHeartRate"/> will be updated with the
         /// new heart rate.
         /// </summary>
+        /// <exception cref="NotInitializedException"></exception>
         public async Task StartSingleHeartRateMeasurementAsync()
         {
             if (!_isInitialized)
@@ -160,7 +169,7 @@ namespace MiBand2DLL.lib
                     "Make sure it is initialized before calling any heart rate related methods.");
 
             // Stop everything
-            await StopAllMeasurements();
+            await StopAllMeasurementsAsync();
 
             // Start single hr measurement
             await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_START_SINGLE_COMMAND.AsBuffer());

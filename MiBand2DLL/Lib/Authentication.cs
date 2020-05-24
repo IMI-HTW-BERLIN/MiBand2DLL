@@ -7,32 +7,53 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
-using MiBand2DLL.CustomExceptions;
+using MiBand2DLL.CustomExceptions.HardwareRelatedExceptions;
+using MiBand2DLL.CustomExceptions.SoftwareRelatedException;
 
 namespace MiBand2DLL.lib
 {
-    /// TODO: Update/Add comments and summaries.
-    /// TODO: Finish clean-up/refactoring.
     /// <summary>
-    /// Following code was partially inspired by
-    /// https://github.com/AL3X1/Mi-Band-2-SDK, 
-    /// https://github.com/aashari/mi-band-2 and 
-    /// https://github.com/creotiv/MiBand2
+    /// Manages the authentication-functionality, providing methods for authenticating the band.
     /// </summary>
-    internal class Identity
+    internal class Authentication
     {
+        /// <summary>
+        /// Whether the band is authenticated.
+        /// </summary>
         public bool Authenticated { get; private set; }
 
-        public bool IsInitialized;
+        /// <summary>
+        /// Whether the auth functionality is initialized.
+        /// </summary>
+        private bool _isInitialized;
 
+        /// <summary>
+        /// Authentication service used for accessing the auth functionality of the band.
+        /// </summary>
         private GattDeviceService _authService;
 
+        /// <summary>
+        /// Auth-Characteristic used to authenticate the band.
+        /// </summary>
         private GattCharacteristic _authCharacteristic;
 
+        /// <summary>
+        /// Flag to prevent multiple authentication processes.
+        /// </summary>
+        private bool _isInAuthenticationProcess;
 
+        /// <summary>
+        /// Used for waiting for a response from the band.
+        /// </summary>
         private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
 
-        public async Task Initialize(BluetoothLEDevice device)
+        /// <summary>
+        /// Initializes the authentication functionality.
+        /// </summary>
+        /// <param name="device">The currently connected bluetooth device (aka. the band)</param>
+        /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
+        /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
+        public async Task InitializeAsync(BluetoothLEDevice device)
         {
             if (_authCharacteristic != null)
                 Dispose();
@@ -51,12 +72,15 @@ namespace MiBand2DLL.lib
             await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
                 GattClientCharacteristicConfigurationDescriptorValue.Notify);
 
-            IsInitialized = true;
+            _isInitialized = true;
         }
 
+        /// <summary>
+        /// Dispose of all references. This is needed to disconnect the device.
+        /// </summary>
         public void Dispose()
         {
-            IsInitialized = false;
+            _isInitialized = false;
             Authenticated = false;
             _authService?.Dispose();
             _authCharacteristic = null;
@@ -65,30 +89,41 @@ namespace MiBand2DLL.lib
         /// <summary>
         /// Starts the authentication process.
         /// </summary>
-        /// <returns></returns>
-        public async Task AuthenticateAsync() => await SendUserHandshakeRequest(true);
+        /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
+        /// <exception cref="NotInitializedException">Auth functionality not initialized.</exception>
+        public async Task AuthenticateAsync()
+        {
+            if (_isInAuthenticationProcess)
+                throw new AccessDeniedException("In authentication process. " +
+                                                "Can't start another authentication process.");
+            _isInAuthenticationProcess = true;
+            await SendUserHandshakeRequestAsync(true);
+        }
 
         /// <summary>
         /// Will wait until the user touches the band.
         /// Uses the first level of authentication for user input. Little hack:P
         /// </summary>
-        /// <returns></returns>
-        public async Task AskForUserTouch() => await SendUserHandshakeRequest(false);
+        /// <exception cref="NotInitializedException">Auth functionality not initialized.</exception>
+        public async Task AskForUserTouchAsync() => await SendUserHandshakeRequestAsync(false);
 
         /// <summary>
         /// Sends a request to the band that will ask the user to touch the band. Also known as Level-1 Authentication.
         /// Will wait until the user touches the band!
         /// </summary>
-        /// <returns></returns>
-        private async Task SendUserHandshakeRequest(bool inAuthenticationProcess)
+        /// <exception cref="NotInitializedException">Auth functionality not initialized.</exception>
+        private async Task SendUserHandshakeRequestAsync(bool inAuthenticationProcess)
         {
-            if (_authCharacteristic == null)
+            if (!_isInitialized)
+            {
+                _isInAuthenticationProcess = false;
                 throw new NotInitializedException(
-                    "Heart rate functionality is not yet initialized. " +
+                    "Auth functionality is not yet initialized. " +
                     "Make sure it is initialized before calling any auth-related methods.");
+            }
 
             if (inAuthenticationProcess)
-                _authCharacteristic.ValueChanged += ListenForAuthMessage;
+                _authCharacteristic.ValueChanged += ListenForAuthMessageAsync;
             else
                 _authCharacteristic.ValueChanged += ListenForAuthMessageOneTime;
 
@@ -98,6 +133,9 @@ namespace MiBand2DLL.lib
             _waitHandle.WaitOne();
         }
 
+        /// <summary>
+        /// Checks the next auth response. Used by <see cref="AskForUserTouchAsync"/>.
+        /// </summary>
         private void ListenForAuthMessageOneTime(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
             _authCharacteristic.ValueChanged -= ListenForAuthMessageOneTime;
@@ -107,11 +145,11 @@ namespace MiBand2DLL.lib
         }
 
         /// <summary>
-        /// Checks each authentication-progress-level between band and program. Will be called every "level"
+        /// Checks each authentication-progress-level between band and program. Will be called every "level".
         /// </summary>
-        /// <param name="sender"></param>
+        /// <param name="sender">Sending characteristic</param>
         /// <param name="args">Data received from the band</param>
-        private async void ListenForAuthMessage(GattCharacteristic sender, GattValueChangedEventArgs args)
+        private async void ListenForAuthMessageAsync(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
             byte[] bandMessages = args.CharacteristicValue.ToArray();
             byte messageType = bandMessages[0];
@@ -126,33 +164,31 @@ namespace MiBand2DLL.lib
             switch (lastMessageReceived)
             {
                 case Consts.Auth.AUTH_KEY_RECEIVED:
-                    await SendSecondAuthKey();
+                    await SendSecondAuthKeyAsync();
                     break;
                 case Consts.Auth.AUTH_SECOND_KEY_RECEIVED:
                     await SendEncryptedRandomKeyAsync(args);
                     break;
                 case Consts.Auth.AUTH_ENCRYPTED_KEY_RECEIVED:
-                    _authCharacteristic.ValueChanged -= ListenForAuthMessage;
+                    _authCharacteristic.ValueChanged -= ListenForAuthMessageAsync;
                     Authenticated = true;
+                    _isInAuthenticationProcess = false;
                     _waitHandle.Set();
                     break;
             }
         }
 
         /// <summary>
-        /// Sending second auth number to band (Auth Level 2)
+        /// Sending second auth number to band (Auth Level 2).
         /// </summary>
-        /// <returns></returns>
-        private async Task<bool> SendSecondAuthKey() =>
-            await _authCharacteristic.WriteValueAsync(Consts.Auth.AUTH_SECOND_KEY.AsBuffer()) ==
-            GattCommunicationStatus.Success;
+        private async Task SendSecondAuthKeyAsync() =>
+            await _authCharacteristic.WriteValueAsync(Consts.Auth.AUTH_SECOND_KEY.AsBuffer());
 
         /// <summary>
-        /// Sending Encrypted random key to band (Auth Level 3)
+        /// Sending Encrypted random key to band (Auth Level 3).
         /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        private async Task<bool> SendEncryptedRandomKeyAsync(GattValueChangedEventArgs args)
+        /// <param name="args">Return value from band-response needed for creating the encrypted key</param>
+        private async Task SendEncryptedRandomKeyAsync(GattValueChangedEventArgs args)
         {
             List<byte> randomKey = new List<byte>();
             byte[] responseValue = args.CharacteristicValue.ToArray();
@@ -164,8 +200,7 @@ namespace MiBand2DLL.lib
             randomKey.Add(0x08);
             randomKey.AddRange(Encrypt(relevantResponsePart));
 
-            return await _authCharacteristic.WriteValueAsync(randomKey.ToArray().AsBuffer()) ==
-                   GattCommunicationStatus.Success;
+            await _authCharacteristic.WriteValueAsync(randomKey.ToArray().AsBuffer());
         }
 
         /// <summary>
