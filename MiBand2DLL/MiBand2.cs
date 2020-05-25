@@ -32,8 +32,8 @@ namespace MiBand2DLL
         /// <summary>
         /// Event for connection status changes. This event will fire when the band gets connected and disconnected.
         /// Will automatically reset all references on disconnect.
+        /// TODO: Should it do that automatically?
         /// <para>
-        /// BUG: Will currently only fire after reconnection causing two invokes (disconnect and then (re-)connect).
         /// </para>
         /// </summary>
         public static event ConnectionStatusDelegate DeviceConnectionChanged;
@@ -89,12 +89,10 @@ namespace MiBand2DLL
             _isInConnectionProcess = true;
             DeviceInformation device = await FindDeviceAsync(name);
             _connectedBtDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
+            _isInConnectionProcess = false;
             if (_connectedBtDevice == null)
-            {
-                _isInConnectionProcess = false;
                 throw new WindowsException("Couldn't get BluetoothLEDevice from DeviceInformation. " +
                                            "Debugging required.");
-            }
 
             _connectedBtDevice.ConnectionStatusChanged += ConnectionStatusChanged;
         }
@@ -102,7 +100,7 @@ namespace MiBand2DLL
         /// <summary>
         /// Disconnects the band by disposing all references.
         /// </summary>
-        public static void DisconnectDeviceAsync()
+        public static void DisconnectDevice()
         {
             DeviceConnectionChanged?.Invoke(false);
             HeartRate.Dispose();
@@ -232,7 +230,7 @@ namespace MiBand2DLL
         private static void ConnectionStatusChanged(BluetoothLEDevice sender, object args)
         {
             if (!Connected)
-                DisconnectDeviceAsync();
+                DisconnectDevice();
             DeviceConnectionChanged?.Invoke(Connected);
         }
 

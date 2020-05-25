@@ -21,9 +21,9 @@ namespace MiBand2ExecutableForTesting
             await MiBand2.AuthenticateBandAsync();
         }
 
-        private async void DisconnectButtonClicked(object sender, EventArgs e)
+        private void DisconnectButtonClicked(object sender, EventArgs e)
         {
-            MiBand2.DisconnectDeviceAsync();
+            MiBand2.DisconnectDevice();
             MiBand2.DeviceConnectionChanged -= ConnectionStatusChanged;
         }
 
