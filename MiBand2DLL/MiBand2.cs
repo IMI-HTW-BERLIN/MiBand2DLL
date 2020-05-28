@@ -7,7 +7,6 @@ using MiBand2DLL.CustomExceptions;
 using MiBand2DLL.CustomExceptions.HardwareRelatedExceptions;
 using MiBand2DLL.CustomExceptions.SoftwareRelatedException;
 using MiBand2DLL.lib;
-using MiBand2DLL.util;
 
 namespace MiBand2DLL
 {
@@ -16,6 +15,11 @@ namespace MiBand2DLL
         #region Fields
 
         #region Public
+
+        /// <summary>
+        /// The connected MiBand2 reference. Null if no band is connected.
+        /// </summary>
+        public static BluetoothLEDevice ConnectedBtDevice => _connectedBtDevice;
 
         /// <summary>
         /// Whether the band is currently connected.
@@ -98,7 +102,7 @@ namespace MiBand2DLL
         }
 
         /// <summary>
-        /// Disconnects the band by disposing all references.
+        /// Disconnects the band by disposing all references. Band will stay paired though.
         /// </summary>
         public static void DisconnectDevice()
         {
@@ -107,75 +111,37 @@ namespace MiBand2DLL
             Authentication.Dispose();
             _connectedBtDevice?.Dispose();
             _connectedBtDevice = null;
+            // Needed to force an immediate update of the connection-status by deleting the removed references.
             GC.Collect();
         }
 
         /// <summary>
         /// Authenticates the band.
         /// </summary>
-        /// <exception cref="NotInitializedException">Auth functionality not initialized.</exception>
         /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
         public static async Task AuthenticateBandAsync() => await Authentication.AuthenticateAsync();
 
         /// <summary>
-        /// Initializes the auth functionality by getting all needed services and characteristics from the band.
-        /// Needs to be done before using any auth-related functionality and after the connection is lost.
-        /// </summary>
-        /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
-        /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
-        public static async Task InitializeAuthenticationFunctionalityAsync() =>
-            await Authentication.InitializeAsync(_connectedBtDevice);
-
-        /// <summary>
-        /// Initializes the heart rate functionality by getting all needed services and characteristics from the band.
-        /// Needs to be done before using any heart rate related functionality and after the connection is lost.
-        /// </summary>
-        /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
-        /// <exception cref="NotAuthenticatedException">Device is not authenticated.</exception>
-        /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
-        public static async Task InitializeHeartRateFunctionalityAsync()
-        {
-            if (IsConnectedAndAuthenticated())
-                await HeartRate.InitializeAsync(_connectedBtDevice);
-        }
-
-        /// <summary>
-        /// Measures the heart rate ONCE.
-        /// </summary>
-        /// <returns>The measured heart rate.</returns>
-        /// <exception cref="NotInitializedException">Heart rate functionality not initialized.</exception>
-        public static async Task<int> GetSingleHeartRateAsync()
-        {
-            if (!Connected || !Authenticated)
-                return 0;
-
-            await HeartRate.StartSingleHeartRateMeasurementAsync();
-            return HeartRate.LastHeartRate;
-        }
-
-        /// <summary>
         /// Starts the continuous heart rate measurement.
         /// </summary>
-        /// <exception cref="NotInitializedException">Heart rate functionality not initialized.</exception>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
         /// <exception cref="NotAuthenticatedException">Device is not authenticated.</exception>
-        public static async Task StartHeartRateMeasureContinuousAsync()
+        public static async Task StartHeartRateMeasureAsync()
         {
             if (IsConnectedAndAuthenticated())
-                await HeartRate.StartContinuousHeartRateMeasurementAsync();
+                await HeartRate.StartHeartRateMeasurementAsync();
         }
 
         /// <summary>
         /// Stops all measurements immediately.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="NotInitializedException">Heart rate functionality not initialized.</exception>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
         /// <exception cref="NotAuthenticatedException">Device is not authenticated.</exception>
-        public static async Task StopAllMeasurementsAsync()
+        public static async Task StopMeasurementAsync()
         {
             if (IsConnectedAndAuthenticated())
-                await HeartRate.StopAllMeasurementsAsync();
+                await HeartRate.StopMeasurementAsync();
         }
 
         /// <summary>
@@ -183,15 +149,16 @@ namespace MiBand2DLL
         /// measurement is enabled and a new heart rate is received.
         /// </summary>
         /// <param name="method">Method to be subscribed to the OnHeartRateChange event</param>
-        public static void SubscribeToHeartRateChange(Delegates.HeartRateDelegate method) =>
+        public static void SubscribeToHeartRateChange(Action<int> method)
+        {
             HeartRate.OnHeartRateChange += method;
+        }
 
         /// <summary>
         /// Asks the user to touch the the band.
         /// CAUTION: Can only be cancelled by disconnecting the band.
         /// </summary>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
-        /// <exception cref="NotInitializedException">Auth functionality not initialized.</exception>
         public static async Task AskUserForTouchAsync()
         {
             if (!Connected)
@@ -226,7 +193,6 @@ namespace MiBand2DLL
         /// Will be called when <see cref="BluetoothLEDevice.ConnectionStatusChanged"/> is called.
         /// Used as a middleman to allow subscription from outside using <see cref="DeviceConnectionChanged"/>.
         /// </summary>
-        /// <exception cref="NotInitializedException"></exception>
         private static void ConnectionStatusChanged(BluetoothLEDevice sender, object args)
         {
             if (!Connected)

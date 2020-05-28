@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
@@ -17,10 +16,18 @@ namespace MiBand2DLL.lib
     /// </summary>
     internal class Authentication
     {
+        #region Fields
+
+        #region Public
+
         /// <summary>
         /// Whether the band is authenticated.
         /// </summary>
         public bool Authenticated { get; private set; }
+
+        #endregion
+
+        #region Private
 
         /// <summary>
         /// Whether the auth functionality is initialized.
@@ -47,18 +54,56 @@ namespace MiBand2DLL.lib
         /// </summary>
         private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
 
+        #endregion
+
+        #endregion
+
+        #region Methods
+
+        #region Public
+
+        /// <summary>
+        /// Dispose of all references. This is needed to disconnect the device.
+        /// </summary>
+        public void Dispose()
+        {
+            _isInitialized = false;
+            Authenticated = false;
+            _authService?.Dispose();
+            _authCharacteristic = null;
+        }
+
+        /// <summary>
+        /// Starts the authentication process.
+        /// </summary>
+        /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
+        public async Task AuthenticateAsync()
+        {
+            if (_isInAuthenticationProcess)
+                throw new AccessDeniedException("In authentication process. " +
+                                                "Can't start another authentication process.");
+            _isInAuthenticationProcess = true;
+            await SendUserHandshakeRequestAsync(true);
+        }
+
+        /// <summary>
+        /// Will wait until the user touches the band.
+        /// Uses the first level of authentication for user input. Little hack:P
+        /// </summary>
+        public async Task AskForUserTouchAsync() => await SendUserHandshakeRequestAsync(false);
+
+        #endregion
+
+        #region Private
+
         /// <summary>
         /// Initializes the authentication functionality.
         /// </summary>
-        /// <param name="device">The currently connected bluetooth device (aka. the band)</param>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
         /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
-        public async Task InitializeAsync(BluetoothLEDevice device)
+        private async Task InitializeAsync()
         {
-            if (_authCharacteristic != null)
-                Dispose();
-
-            _authService = await Gatt.GetServiceByUuid(device, Consts.Guids.AUTH_SERVICE);
+            _authService = await Gatt.GetServiceByUuid(MiBand2.ConnectedBtDevice, Consts.Guids.AUTH_SERVICE);
             // No service, no device.
             if (_authService == null)
                 throw new DeviceDisconnectedException("Couldn't get service, the device seems to be disconnected.");
@@ -76,51 +121,15 @@ namespace MiBand2DLL.lib
         }
 
         /// <summary>
-        /// Dispose of all references. This is needed to disconnect the device.
-        /// </summary>
-        public void Dispose()
-        {
-            _isInitialized = false;
-            Authenticated = false;
-            _authService?.Dispose();
-            _authCharacteristic = null;
-        }
-
-        /// <summary>
-        /// Starts the authentication process.
-        /// </summary>
-        /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
-        /// <exception cref="NotInitializedException">Auth functionality not initialized.</exception>
-        public async Task AuthenticateAsync()
-        {
-            if (_isInAuthenticationProcess)
-                throw new AccessDeniedException("In authentication process. " +
-                                                "Can't start another authentication process.");
-            _isInAuthenticationProcess = true;
-            await SendUserHandshakeRequestAsync(true);
-        }
-
-        /// <summary>
-        /// Will wait until the user touches the band.
-        /// Uses the first level of authentication for user input. Little hack:P
-        /// </summary>
-        /// <exception cref="NotInitializedException">Auth functionality not initialized.</exception>
-        public async Task AskForUserTouchAsync() => await SendUserHandshakeRequestAsync(false);
-
-        /// <summary>
         /// Sends a request to the band that will ask the user to touch the band. Also known as Level-1 Authentication.
         /// Will wait until the user touches the band!
         /// </summary>
-        /// <exception cref="NotInitializedException">Auth functionality not initialized.</exception>
+        /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
+        /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
         private async Task SendUserHandshakeRequestAsync(bool inAuthenticationProcess)
         {
             if (!_isInitialized)
-            {
-                _isInAuthenticationProcess = false;
-                throw new NotInitializedException(
-                    "Auth functionality is not yet initialized. " +
-                    "Make sure it is initialized before calling any auth-related methods.");
-            }
+                await InitializeAsync();
 
             if (inAuthenticationProcess)
                 _authCharacteristic.ValueChanged += ListenForAuthMessageAsync;
@@ -206,8 +215,8 @@ namespace MiBand2DLL.lib
         /// <summary>
         /// Encrypt Secret key and last 16 bytes from response in AES/ECB/NoPadding Encryption.
         /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        /// <param name="data">Data to be encrypted.</param>
+        /// <returns>Byte Array containing the encrypted data.</returns>
         private static byte[] Encrypt(byte[] data)
         {
             IBuffer key = Consts.Auth.AUTH_SECRET_KEY.AsBuffer();
@@ -218,5 +227,9 @@ namespace MiBand2DLL.lib
             IBuffer buffEncrypt = CryptographicEngine.Encrypt(cKey, data.AsBuffer(), null);
             return buffEncrypt.ToArray();
         }
+
+        #endregion
+
+        #endregion
     }
 }

@@ -11,6 +11,7 @@
     <AssemblyName>MiBand2DLL</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile/>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -60,22 +61,20 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-      <Compile Include="CustomExceptions\WindowsException.cs"/>
-      <Compile Include="CustomExceptions\HardwareRelatedExceptions\DeviceDisconnectedException.cs"/>
-      <Compile Include="CustomExceptions\HardwareRelatedExceptions\DeviceNotFoundException.cs"/>
-      <Compile Include="CustomExceptions\SoftwareRelatedException\AccessDeniedException.cs"/>
-      <Compile Include="CustomExceptions\SoftwareRelatedException\NotAuthenticatedException.cs"/>
-      <Compile Include="CustomExceptions\SoftwareRelatedException\NotInitializedException.cs"/>
-      <Compile Include="Lib\Gatt.cs"/>
-      <Compile Include="Lib\Consts.cs"/>
-      <Compile Include="Lib\HeartRate.cs"/>
-      <Compile Include="Lib\Authentication.cs"/>
-      <Compile Include="MiBand2.cs"/>
-      <Compile Include="Properties\AssemblyInfo.cs"/>
-      <Compile Include="Util\ClassExtension.cs"/>
-      <Compile Include="Util\Delegates.cs"/>
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Include="CustomExceptions\WindowsException.cs"/>
+        <Compile Include="CustomExceptions\HardwareRelatedExceptions\DeviceDisconnectedException.cs"/>
+        <Compile Include="CustomExceptions\HardwareRelatedExceptions\DeviceNotFoundException.cs"/>
+        <Compile Include="CustomExceptions\SoftwareRelatedException\AccessDeniedException.cs"/>
+        <Compile Include="CustomExceptions\SoftwareRelatedException\NotAuthenticatedException.cs"/>
+        <Compile Include="Lib\Gatt.cs"/>
+        <Compile Include="Lib\Consts.cs"/>
+        <Compile Include="Lib\HeartRate.cs"/>
+        <Compile Include="Lib\Authentication.cs"/>
+        <Compile Include="MiBand2.cs"/>
+        <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="Util\ClassExtension.cs"/>
+    </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.

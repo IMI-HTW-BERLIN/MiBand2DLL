@@ -42,10 +42,9 @@ namespace MiBand2DLL.lib
         /// </summary>
         public static class HeartRate
         {
-            public static readonly byte[] HR_START_CONTINUOUS_COMMAND = {0x15, 0x01, 0x01};
-            public static readonly byte[] HR_STOP_CONTINUOUS_COMMAND = {0x15, 0x01, 0x00};
-            public static readonly byte[] HR_START_SINGLE_COMMAND = {0x15, 0x02, 0x00};
-            public static readonly byte[] HR_STOP_SINGLE_COMMAND = {0x15, 0x02, 0x00};
+            public static readonly byte[] HR_START_COMMAND = {0x15, 0x01, 0x01};
+            public static readonly byte[] HR_STOP_COMMAND = {0x15, 0x01, 0x00};
+            public static readonly byte[] HR_CONTINUE_COMMAND = {0x16};
         }
 
         /// <summary>

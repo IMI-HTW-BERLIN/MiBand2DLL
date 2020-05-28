@@ -5,7 +5,6 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using MiBand2DLL.CustomExceptions.HardwareRelatedExceptions;
 using MiBand2DLL.CustomExceptions.SoftwareRelatedException;
-using MiBand2DLL.util;
 
 namespace MiBand2DLL.lib
 {
@@ -14,17 +13,18 @@ namespace MiBand2DLL.lib
     /// </summary>
     internal class HeartRate
     {
-        /// <summary>
-        /// Last measured heart rate. Can be used to simply get the last measured heart rate.
-        /// </summary>
-        public int LastHeartRate { get; private set; }
+        #region Fields
 
+        #region Public
 
         /// <summary>
-        /// Event for changing <see cref="LastHeartRate"/>. Will be invoked whenever a new heart rate is measured.
+        /// Will be invoked whenever a new heart rate is measured.
         /// </summary>
-        public static event Delegates.HeartRateDelegate OnHeartRateChange;
+        public static event Action<int> OnHeartRateChange;
 
+        #endregion
+
+        #region Private
 
         /// <summary>
         /// Heart rate service used for getting characteristics for measurements.
@@ -35,7 +35,6 @@ namespace MiBand2DLL.lib
         /// Heart rate service used for getting characteristics for enabling continuous measurements.
         /// </summary>
         private static GattDeviceService _sensorService;
-
 
         /// <summary>
         /// Heart-Rate-Measurement-Characteristic is used for listening for new heart rate measurements.
@@ -54,22 +53,84 @@ namespace MiBand2DLL.lib
         private GattCharacteristic _sensorCharacteristic;
 
         /// <summary>
-        /// Whether we are currently measuring the heart rate continuously.
-        /// </summary>
-        private bool _measureHeartRateContinuous;
-
-        /// <summary>
         /// Whether th heart rate functionality is initialized.
         /// </summary>
         private bool _isInitialized;
 
+        #endregion
+
+        #endregion
+
+        #region Methods
+
+        #region Public
+
+        /// <summary>
+        /// Dispose of all references. This is needed to disconnect the device.
+        /// </summary>
+        public void Dispose()
+        {
+            _isInitialized = false;
+            _hrService?.Dispose();
+            _sensorService?.Dispose();
+
+            _hrMeasurementCharacteristic = null;
+            _hrControlPointCharacteristic = null;
+        }
+
+        /// <summary>
+        /// Starts the continuous heart rate measurement by repeatedly requesting new ones.
+        /// </summary>
+        /// <exception cref="DeviceDisconnectedException">Device is currently disconnected.</exception>
+        /// <exception cref="AccessDeniedException">Service is already in use.</exception>
+        public async Task StartHeartRateMeasurementAsync()
+        {
+            if (!_isInitialized)
+                await InitializeAsync();
+
+            // Stop everything
+            await StopMeasurementAsync();
+
+            // Start continuous hr measurement
+            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_START_COMMAND
+                .AsBuffer());
+
+            // Needed to actually start the continuous measurement.
+            byte[] startCommand = {0x02};
+            await _sensorCharacteristic.WriteValueAsync(startCommand.AsBuffer());
+
+            // Listen for new heart rate measurement
+            _hrMeasurementCharacteristic.ValueChanged += HeartRateReceived;
+        }
+
+        /// <summary>
+        /// Stops measurement and un-subscribes from Change-Event.
+        /// </summary>
+        /// <exception cref="DeviceDisconnectedException">Device is currently disconnected.</exception>
+        /// <exception cref="AccessDeniedException">Service is already in use.</exception>
+        public async Task StopMeasurementAsync()
+        {
+            if (!_isInitialized)
+                await InitializeAsync();
+
+            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_STOP_COMMAND.AsBuffer());
+            _hrMeasurementCharacteristic.ValueChanged -= HeartRateReceived;
+        }
+
+        #endregion
+
+        #region Private
+
         /// <summary>
         /// Initializes all characteristics.
         /// </summary>
-        /// <exception cref="AccessDeniedException"></exception>
-        /// <exception cref="DeviceDisconnectedException"></exception>
-        public async Task InitializeAsync(BluetoothLEDevice device)
+        /// <exception cref="DeviceDisconnectedException">Device is currently disconnected.</exception>
+        /// <exception cref="AccessDeniedException">Service is already in use.</exception>
+        private async Task InitializeAsync()
         {
+            BluetoothLEDevice device = MiBand2.ConnectedBtDevice;
+            if (device == null)
+                throw new DeviceDisconnectedException("There is no device connected.");
             _hrService = await Gatt.GetServiceByUuid(device, Consts.Guids.HR_SERVICE);
             _sensorService = await Gatt.GetServiceByUuid(device, Consts.Guids.SENSOR_SERVICE);
             // No service, no device.
@@ -96,111 +157,27 @@ namespace MiBand2DLL.lib
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public void Dispose()
-        {
-            _isInitialized = false;
-            _hrService?.Dispose();
-            _sensorService?.Dispose();
-
-            _hrMeasurementCharacteristic = null;
-            _hrControlPointCharacteristic = null;
-        }
-
-        /// <summary>
-        /// Starts the continuous heart rate measurement by repeatedly requesting new ones.
-        /// </summary>
-        /// <exception cref="NotInitializedException"></exception>
-        public async Task StartContinuousHeartRateMeasurementAsync()
-        {
-            if (!_isInitialized)
-                throw new NotInitializedException(
-                    "Heart rate functionality is not yet initialized. " +
-                    "Make sure it is initialized before calling any heart rate related methods.");
-
-            // Stop everything
-            await StopAllMeasurementsAsync();
-
-            // Start continuous hr measurement
-            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_START_CONTINUOUS_COMMAND
-                .AsBuffer());
-
-            // Needed to actually start the continuous measurement TODO: Really needed?
-            byte[] startCommand = {0x02};
-            await _sensorCharacteristic.WriteValueAsync(startCommand.AsBuffer());
-
-            // Listen for new heart rate measurement
-            _measureHeartRateContinuous = true;
-            _hrMeasurementCharacteristic.ValueChanged += HeartRateReceived;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="NotInitializedException">Functionality not initialized.</exception>
-        public async Task StopAllMeasurementsAsync()
-        {
-            if (!_isInitialized)
-                throw new NotInitializedException(
-                    "Can't stop measurements without characteristics being initialized. " +
-                    "Make sure it is initialized before calling any heart rate related methods.");
-
-            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_STOP_SINGLE_COMMAND.AsBuffer());
-            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_STOP_CONTINUOUS_COMMAND.AsBuffer());
-            if (_measureHeartRateContinuous)
-            {
-                _measureHeartRateContinuous = false;
-                _hrMeasurementCharacteristic.ValueChanged -= HeartRateReceived;
-            }
-        }
-
-        /// <summary>
-        /// Start single heart rate measurement. After completion, <see cref="LastHeartRate"/> will be updated with the
-        /// new heart rate.
-        /// </summary>
-        /// <exception cref="NotInitializedException"></exception>
-        public async Task StartSingleHeartRateMeasurementAsync()
-        {
-            if (!_isInitialized)
-                throw new NotInitializedException(
-                    "Heart rate functionality is not yet initialized. " +
-                    "Make sure it is initialized before calling any heart rate related methods.");
-
-            // Stop everything
-            await StopAllMeasurementsAsync();
-
-            // Start single hr measurement
-            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_START_SINGLE_COMMAND.AsBuffer());
-
-            // Listen for new heart rate measurement
-            _measureHeartRateContinuous = false;
-            _hrMeasurementCharacteristic.ValueChanged += HeartRateReceived;
-        }
-
-        /// <summary>
         /// Handles incoming measurements from the band.
-        /// If <see cref="_measureHeartRateContinuous"/> is true, will send a request to get the next measurement.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args">The received hr-measurement</param>
         private void HeartRateReceived(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            LastHeartRate = args.CharacteristicValue.ToArray()[1];
-            OnHeartRateChange?.Invoke(LastHeartRate);
+            int lastHeartRate = args.CharacteristicValue.ToArray()[1];
+            OnHeartRateChange?.Invoke(lastHeartRate);
             // TODO: Test how often this is needed
-            if (_measureHeartRateContinuous)
-                SendNextHRRequest().Wait();
-            else
-                _hrMeasurementCharacteristic.ValueChanged -= HeartRateReceived;
+            SendNextHRRequest().Wait();
         }
 
         /// <summary>
         /// Sends a request to measure the heart rate again.
-        /// Used by <see cref="StartContinuousHeartRateMeasurementAsync"/>.
+        /// Used by <see cref="StartHeartRateMeasurementAsync"/>.
         /// </summary>
         private async Task SendNextHRRequest() =>
-            await _hrControlPointCharacteristic.WriteValueAsync(new byte[] {0x16}.AsBuffer());
+            await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_CONTINUE_COMMAND.AsBuffer());
+
+        #endregion
+
+        #endregion
     }
 }
