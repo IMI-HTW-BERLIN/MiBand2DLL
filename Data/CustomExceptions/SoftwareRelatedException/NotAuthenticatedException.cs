@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace MiBand2DLL.CustomExceptions.SoftwareRelatedException
+namespace Data.CustomExceptions.SoftwareRelatedException
 {
     [Serializable]
-    public class NotAuthenticatedException : Exception
+    public class NotAuthenticatedException : Exception, ICustomException
     {
         public NotAuthenticatedException()
         {

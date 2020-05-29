@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
-using MiBand2DLL.CustomExceptions.HardwareRelatedExceptions;
-using MiBand2DLL.CustomExceptions.SoftwareRelatedException;
+using Data.CustomExceptions.HardwareRelatedExceptions;
+using Data.CustomExceptions.SoftwareRelatedException;
+using MiBand2DLL.Util;
 
 namespace MiBand2DLL.lib
 {

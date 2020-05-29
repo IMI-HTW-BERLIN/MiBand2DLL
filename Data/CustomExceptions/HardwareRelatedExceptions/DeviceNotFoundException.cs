@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace MiBand2DLL.CustomExceptions.HardwareRelatedExceptions
+namespace Data.CustomExceptions.HardwareRelatedExceptions
 {
     [Serializable]
-    public class DeviceNotFoundException : Exception
+    public class DeviceNotFoundException : Exception, ICustomException
     {
         public DeviceNotFoundException()
         {

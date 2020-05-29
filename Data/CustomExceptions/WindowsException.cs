@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace MiBand2DLL.CustomExceptions
+namespace Data.CustomExceptions
 {
     [Serializable]
-    public class WindowsException : Exception
+    public class WindowsException : Exception, ICustomException
     {
         public WindowsException()
         {

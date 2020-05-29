@@ -1,6 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiBand2DLL", "MiBand2DLL\MiBand2DLL.csproj", "{7D115E2E-3214-4AC0-A7E3-D4E1C4A74E49}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundServer", "BackgroundServer\BackgroundServer.csproj", "{5EE24BD0-8C1F-413D-8121-D303399FB05E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data", "Data\Data.csproj", "{8E8863F2-8816-4CEC-B51C-6B473CD1FF53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiBand2DLL", "MiBand2DLL\MiBand2DLL.csproj", "{EEF73A1C-DF6C-49F7-A7B1-3F48EF11F872}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,9 +12,17 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7D115E2E-3214-4AC0-A7E3-D4E1C4A74E49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D115E2E-3214-4AC0-A7E3-D4E1C4A74E49}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D115E2E-3214-4AC0-A7E3-D4E1C4A74E49}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D115E2E-3214-4AC0-A7E3-D4E1C4A74E49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EE24BD0-8C1F-413D-8121-D303399FB05E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EE24BD0-8C1F-413D-8121-D303399FB05E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EE24BD0-8C1F-413D-8121-D303399FB05E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EE24BD0-8C1F-413D-8121-D303399FB05E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E8863F2-8816-4CEC-B51C-6B473CD1FF53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E8863F2-8816-4CEC-B51C-6B473CD1FF53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E8863F2-8816-4CEC-B51C-6B473CD1FF53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E8863F2-8816-4CEC-B51C-6B473CD1FF53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEF73A1C-DF6C-49F7-A7B1-3F48EF11F872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEF73A1C-DF6C-49F7-A7B1-3F48EF11F872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEF73A1C-DF6C-49F7-A7B1-3F48EF11F872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEF73A1C-DF6C-49F7-A7B1-3F48EF11F872}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

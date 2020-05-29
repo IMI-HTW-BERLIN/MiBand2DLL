@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace MiBand2DLL.CustomExceptions.HardwareRelatedExceptions
+namespace Data.CustomExceptions.HardwareRelatedExceptions
 {
     [Serializable]
-    public class DeviceDisconnectedException : Exception
+    public class DeviceDisconnectedException : Exception, ICustomException
     {
         public DeviceDisconnectedException()
         {
