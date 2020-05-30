@@ -18,8 +18,6 @@ namespace Data
             Data = data;
         }
 
-        public ServerResponse(string data) => Data = data;
-
         public string ToJson()
         {
             Dictionary<string, string> dictionary = new Dictionary<string, string>
