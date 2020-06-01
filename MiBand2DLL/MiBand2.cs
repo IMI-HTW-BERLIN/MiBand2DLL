@@ -12,7 +12,7 @@ namespace MiBand2DLL
 {
     public static class MiBand2
     {
-        #region Fields
+        #region Variables
 
         #region Public
 
@@ -90,12 +90,12 @@ namespace MiBand2DLL
         {
             if (_isInConnectionProcess)
                 throw new AccessDeniedException("In connection process. Can't access band atm.");
-            
+
             _isInConnectionProcess = true;
             DeviceInformation device = await FindDeviceAsync(name);
             _connectedBtDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
             _isInConnectionProcess = false;
-            
+
             if (_connectedBtDevice == null)
                 throw new WindowsException("Couldn't get BluetoothLEDevice from DeviceInformation. " +
                                            "Debugging required.");
@@ -109,7 +109,7 @@ namespace MiBand2DLL
         /// <param name="triggerEvent">Should the <see cref="DeviceConnectionChanged"/> event be triggered?</param>
         public static void DisconnectBand(bool triggerEvent = true)
         {
-            if(triggerEvent)
+            if (triggerEvent)
                 DeviceConnectionChanged?.Invoke(false);
             HeartRate.Dispose();
             Authentication.Dispose();
@@ -119,6 +119,7 @@ namespace MiBand2DLL
                 _connectedBtDevice.Dispose();
                 _connectedBtDevice = null;
             }
+
             // Needed to force an immediate update of the connection-status by deleting the removed references.
             GC.Collect();
         }

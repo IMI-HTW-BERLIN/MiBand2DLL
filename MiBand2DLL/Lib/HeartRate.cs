@@ -13,7 +13,7 @@ namespace MiBand2DLL.lib
     /// </summary>
     internal class HeartRate
     {
-        #region Fields
+        #region Variables
 
         #region Public
 
