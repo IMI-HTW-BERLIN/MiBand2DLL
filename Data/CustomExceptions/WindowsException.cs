@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Data.CustomExceptions
 {
@@ -10,6 +11,12 @@ namespace Data.CustomExceptions
         }
 
         public WindowsException(string message) : base(message)
+        {
+        }
+
+        protected WindowsException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
         {
         }
     }

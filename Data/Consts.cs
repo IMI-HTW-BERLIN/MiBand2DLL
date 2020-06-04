@@ -7,12 +7,6 @@
             public const int PORT = 4000;
         }
 
-        public static class ServerResponseToken
-        {
-            public const char IS_INT_CHAR = '°';
-            public const char IS_STRING_CHAR = '^';
-        }
-
         public enum Command
         {
             ConnectBand,
@@ -20,7 +14,12 @@
             AuthenticateBand,
             StartMeasurement,
             StopMeasurement,
+
+            /// <summary>
+            /// Will automatically send the heart rate change to the client whenever it changes.
+            /// </summary>
             SubscribeToHeartRateChange,
+            SubscribeToDeviceConnectionStatusChanged,
             AskUserForTouch,
             StopServer
         }

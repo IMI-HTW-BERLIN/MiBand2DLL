@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -7,13 +6,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Data;
 using Data.CustomExceptions;
-using Data.CustomExceptions.HardwareRelatedExceptions;
+using Data.ResponseTypes;
 using MiBand2DLL;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace BackgroundServer
 {
+    /// <summary>
+    /// Will execute commands that are send as int values (corresponding with <see cref="Data.Consts.Command"/>).
+    /// Returns a JSON containing a <see cref="ServerResponse"/> with data.
+    /// </summary>
     public class BackgroundServer : BackgroundService
     {
         private readonly ILogger<BackgroundServer> _logger;
@@ -33,10 +36,10 @@ namespace BackgroundServer
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _client = await _server.AcceptTcpClientAsync();
+            _logger.LogCritical("Client connected.");
             NetworkStream stream = _client.GetStream();
             _writer = new BinaryWriter(stream, Encoding.UTF8, true);
             using BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true);
-            
             while (_receiveCommands)
             {
                 Consts.Command command = (Consts.Command) reader.ReadInt32();
@@ -53,24 +56,34 @@ namespace BackgroundServer
                 {
                     case Consts.Command.ConnectBand:
                         await MiBand2.ConnectBandAsync();
+                        SendSuccess();
                         break;
                     case Consts.Command.DisconnectBand:
                         MiBand2.DisconnectBand();
+                        SendSuccess();
                         break;
                     case Consts.Command.AuthenticateBand:
                         await MiBand2.AuthenticateBandAsync();
+                        SendSuccess();
                         break;
                     case Consts.Command.StartMeasurement:
                         await MiBand2.StartMeasurementAsync();
+                        SendSuccess();
                         break;
                     case Consts.Command.StopMeasurement:
                         await MiBand2.StopMeasurementAsync();
+                        SendSuccess();
                         break;
                     case Consts.Command.SubscribeToHeartRateChange:
                         MiBand2.SubscribeToHeartRateChange(OnHeartRateChange);
+                        SendSuccess();
+                        break;
+                    case Consts.Command.SubscribeToDeviceConnectionStatusChanged:
+                        MiBand2.DeviceConnectionChanged += OnDeviceConnectionStatusChanged;
                         break;
                     case Consts.Command.AskUserForTouch:
                         await MiBand2.AskUserForTouchAsync();
+                        SendSuccess();
                         break;
                     case Consts.Command.StopServer:
                         _receiveCommands = false;
@@ -78,22 +91,40 @@ namespace BackgroundServer
                         Dispose();
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(command), command, null);
+                        ArgumentOutOfRangeException exception =
+                            new ArgumentOutOfRangeException(nameof(command), command, null);
+                        SendData(new ServerResponse(exception).ToJson());
+                        break;
                 }
             }
-            catch (Exception e) when(e is ICustomException)
+            catch (Exception e) when (e is ICustomException)
             {
-                ServerResponse response = new ServerResponse(e.GetType(), e.Message);
+                _logger.LogCritical("Exception occured of type:" + e.GetType());
+                ServerResponse response = new ServerResponse(e);
                 SendData(response.ToJson());
             }
         }
 
+        private void OnDeviceConnectionStatusChanged(bool isConnected)
+        {
+            ServerResponse response =
+                new ServerResponse(new DeviceConnectionResponse(isConnected));
+            SendData(response.ToJson());
+        }
+
         private void OnHeartRateChange(int newHeartRate)
         {
-            ServerResponse response = new ServerResponse(typeof(int), newHeartRate.ToString());
+            ServerResponse response = new ServerResponse(new HeartRateResponse(newHeartRate));
             SendData(response.ToJson());
         }
 
         private void SendData(string data) => _writer.Write(data);
+
+        private void SendSuccess()
+        {
+            string json = new ServerResponse(null, ServerResponse.ResponseStatus.Success).ToJson();
+            _logger.LogCritical(json);
+            _writer.Write(json);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Data.CustomExceptions.SoftwareRelatedException
 {
@@ -13,6 +14,12 @@ namespace Data.CustomExceptions.SoftwareRelatedException
         }
 
         public AccessDeniedException(string message) : base(message)
+        {
+        }
+
+        protected AccessDeniedException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
         {
         }
     }

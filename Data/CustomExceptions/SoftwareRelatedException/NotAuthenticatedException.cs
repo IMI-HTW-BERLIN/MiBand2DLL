@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Data.CustomExceptions.SoftwareRelatedException
 {
@@ -10,6 +11,12 @@ namespace Data.CustomExceptions.SoftwareRelatedException
         }
 
         public NotAuthenticatedException(string message) : base(message)
+        {
+        }
+
+        protected NotAuthenticatedException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
         {
         }
     }

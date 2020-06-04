@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Data.CustomExceptions.HardwareRelatedExceptions
 {
@@ -10,6 +11,12 @@ namespace Data.CustomExceptions.HardwareRelatedExceptions
         }
 
         public DeviceDisconnectedException(string message) : base(message)
+        {
+        }
+
+        protected DeviceDisconnectedException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
         {
         }
     }
