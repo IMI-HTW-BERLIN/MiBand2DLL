@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <UserSecretsId>dotnet-BackgroundServer-7197DD05-06E3-486F-8CC9-483AC756F289</UserSecretsId>
+        <UserSecretsId>dotnet-BackgroundServer-02F5FA6E-B81D-4A27-A47B-8FD4DB15F69E</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>

@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Data;
-using Data.CustomExceptions;
 using Data.ResponseTypes;
 using MiBand2DLL;
 using Microsoft.Extensions.Hosting;
@@ -35,6 +34,9 @@ namespace BackgroundServer
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            await MiBand2.ConnectBandAsync();
+            await MiBand2.AuthenticateBandAsync();
+
             _client = await _server.AcceptTcpClientAsync();
             _logger.LogCritical("Client connected.");
             NetworkStream stream = _client.GetStream();
@@ -97,11 +99,12 @@ namespace BackgroundServer
                         break;
                 }
             }
-            catch (Exception e) when (e is ICustomException)
+            catch (Exception e)
             {
                 _logger.LogCritical("Exception occured of type:" + e.GetType());
                 ServerResponse response = new ServerResponse(e);
                 SendData(response.ToJson());
+                throw;
             }
         }
 
@@ -122,7 +125,7 @@ namespace BackgroundServer
 
         private void SendSuccess()
         {
-            string json = new ServerResponse(null, ServerResponse.ResponseStatus.Success).ToJson();
+            string json = new ServerResponse(string.Empty).ToJson();
             _logger.LogCritical(json);
             _writer.Write(json);
         }

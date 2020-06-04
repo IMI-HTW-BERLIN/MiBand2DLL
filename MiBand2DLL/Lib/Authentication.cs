@@ -115,8 +115,12 @@ namespace MiBand2DLL.lib
             if (_authCharacteristic == default)
                 throw new AccessDeniedException("Couldn't get characteristics. Services may be accessed atm.");
             // Enable notification for user input.
-            await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-                GattClientCharacteristicConfigurationDescriptorValue.Notify);
+            GattCommunicationStatus status =
+                await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
+
+            if (status != GattCommunicationStatus.Success)
+                throw new Exception("NOOOOOOO");
 
             _isInitialized = true;
         }
@@ -158,7 +162,7 @@ namespace MiBand2DLL.lib
         /// Checks each authentication-progress-level between band and program. Will be called every "level".
         /// </summary>
         /// <param name="sender">Sending characteristic</param>
-        /// <param name="args">Data received from the band</param>
+        /// <param name="args">Data2 received from the band</param>
         private async void ListenForAuthMessageAsync(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
             byte[] bandMessages = args.CharacteristicValue.ToArray();
@@ -216,7 +220,7 @@ namespace MiBand2DLL.lib
         /// <summary>
         /// Encrypt Secret key and last 16 bytes from response in AES/ECB/NoPadding Encryption.
         /// </summary>
-        /// <param name="data">Data to be encrypted.</param>
+        /// <param name="data">Data2 to be encrypted.</param>
         /// <returns>Byte Array containing the encrypted data.</returns>
         private static byte[] Encrypt(byte[] data)
         {

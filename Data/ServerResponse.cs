@@ -38,7 +38,7 @@ namespace Data
             Dictionary<string, string> jsonDictionary = new Dictionary<string, string>()
             {
                 {"DataType", _dataType.ToString()},
-                {"Data", JsonConvert.SerializeObject(Data)},
+                {"Data2", JsonConvert.SerializeObject(Data)},
                 {"ResponseStatus", Status.ToString()}
             };
             return JsonConvert.SerializeObject(jsonDictionary);
@@ -50,7 +50,7 @@ namespace Data
             Type dataType = Type.GetType(jsonDictionary["DataType"]);
             if (dataType == null)
                 throw new TypeLoadException("Could not find type while deserializing JSON.");
-            object data = JsonConvert.DeserializeObject(jsonDictionary["Data"], dataType);
+            object data = JsonConvert.DeserializeObject(jsonDictionary["Data2"], dataType);
             return new ServerResponse(data,
                 (ResponseStatus) Enum.Parse(typeof(ResponseStatus), jsonDictionary["ResponseStatus"]));
         }
