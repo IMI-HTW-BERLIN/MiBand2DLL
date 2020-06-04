@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiBand2DLL", "MiBand2DLL\Mi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackgroundServer", "BackgroundServer\BackgroundServer.csproj", "{E7AC6AB9-1DF7-4E19-AD26-296E194FBECA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiBand2ExecutableForTesting", "MiBand2ExecutableForTesting\MiBand2ExecutableForTesting.csproj", "{E4D084C5-1E30-4B2A-A575-6158B5BC18CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{E7AC6AB9-1DF7-4E19-AD26-296E194FBECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7AC6AB9-1DF7-4E19-AD26-296E194FBECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7AC6AB9-1DF7-4E19-AD26-296E194FBECA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4D084C5-1E30-4B2A-A575-6158B5BC18CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4D084C5-1E30-4B2A-A575-6158B5BC18CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4D084C5-1E30-4B2A-A575-6158B5BC18CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4D084C5-1E30-4B2A-A575-6158B5BC18CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
