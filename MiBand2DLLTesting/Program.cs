@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
-using MiBand2DLLTesting;
 
-namespace MiBand2ExecutableForTesting
+namespace MiBand2DLLTesting
 {
     static class Program
     {
