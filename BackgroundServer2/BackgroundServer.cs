@@ -37,17 +37,7 @@ namespace BackgroundServer
             await MiBand2.ConnectBandAsync();
             await MiBand2.AuthenticateBandAsync();
 
-            _client = await _server.AcceptTcpClientAsync();
-            _logger.LogCritical("Client connected.");
-            NetworkStream stream = _client.GetStream();
-            _writer = new BinaryWriter(stream, Encoding.UTF8, true);
-            using BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true);
-            while (_receiveCommands)
-            {
-                Consts.Command command = (Consts.Command) reader.ReadInt32();
-                _logger.LogCritical(command.ToString());
-                await ExecuteCommand(command);
-            }
+            
         }
 
         private async Task ExecuteCommand(Consts.Command command)

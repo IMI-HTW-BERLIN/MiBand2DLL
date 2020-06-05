@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Security.Cryptography.Core;
@@ -51,9 +50,9 @@ namespace MiBand2DLL.lib
         private bool _isInAuthenticationProcess;
 
         /// <summary>
-        /// Used for waiting for a response from the band.
+        /// Used for delaying the current task until the band responded
         /// </summary>
-        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private bool _authEventCompleted;
 
         #endregion
 
@@ -115,12 +114,8 @@ namespace MiBand2DLL.lib
             if (_authCharacteristic == default)
                 throw new AccessDeniedException("Couldn't get characteristics. Services may be accessed atm.");
             // Enable notification for user input.
-            GattCommunicationStatus status =
-                await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
-
-            if (status != GattCommunicationStatus.Success)
-                throw new Exception("NOOOOOOO");
+            await _authCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+                GattClientCharacteristicConfigurationDescriptorValue.Notify);
 
             _isInitialized = true;
         }
@@ -136,6 +131,8 @@ namespace MiBand2DLL.lib
             if (!_isInitialized)
                 await InitializeAsync();
 
+            _authEventCompleted = false;
+
             if (inAuthenticationProcess)
                 _authCharacteristic.ValueChanged += ListenForAuthMessageAsync;
             else
@@ -144,7 +141,7 @@ namespace MiBand2DLL.lib
             List<byte> authKey = new List<byte>(Consts.Auth.AUTH_KEY);
             authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
             await _authCharacteristic.WriteValueAsync(authKey.ToArray().AsBuffer());
-            _waitHandle.WaitOne();
+            await WaitUntil(() => _authEventCompleted);
         }
 
         /// <summary>
@@ -155,7 +152,7 @@ namespace MiBand2DLL.lib
             _authCharacteristic.ValueChanged -= ListenForAuthMessageOneTime;
             byte[] bandMessages = args.CharacteristicValue.ToArray();
             if (bandMessages[2] == Consts.Auth.AUTH_SUCCESS)
-                _waitHandle.Set();
+                _authEventCompleted = true;
         }
 
         /// <summary>
@@ -172,7 +169,7 @@ namespace MiBand2DLL.lib
 
             // Check if current message is a authentication response and if it was successful
             if (messageType != Consts.Auth.AUTH_RESPONSE || messageStatus == Consts.Auth.AUTH_FAIL)
-                _waitHandle.Set();
+                _authEventCompleted = true;
 
 
             switch (lastMessageReceived)
@@ -187,7 +184,7 @@ namespace MiBand2DLL.lib
                     _authCharacteristic.ValueChanged -= ListenForAuthMessageAsync;
                     Authenticated = true;
                     _isInAuthenticationProcess = false;
-                    _waitHandle.Set();
+                    _authEventCompleted = true;
                     break;
             }
         }
@@ -231,6 +228,18 @@ namespace MiBand2DLL.lib
 
             IBuffer buffEncrypt = CryptographicEngine.Encrypt(cKey, data.AsBuffer(), null);
             return buffEncrypt.ToArray();
+        }
+
+        /// <summary>
+        /// Waits until the given predicate is true. Will delay the current Task with the given frequency.
+        /// </summary>
+        /// <param name="predicate">Condition until which the task will be delayed.</param>
+        /// <param name="checkFrequency">Frequency for checking the condition.</param>
+        /// <returns></returns>
+        private static async Task WaitUntil(Func<bool> predicate, int checkFrequency = 25)
+        {
+            while (!predicate.Invoke())
+                await Task.Delay(checkFrequency);
         }
 
         #endregion
