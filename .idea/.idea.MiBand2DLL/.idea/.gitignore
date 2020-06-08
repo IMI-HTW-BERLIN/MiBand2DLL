@@ -481,3 +481,5 @@ MigrationBackup/
 # CUSTOM
 **/bin/
 **/obj/
+
+!BackgroundServer/bin/Release/
