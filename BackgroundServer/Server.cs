@@ -20,11 +20,7 @@ namespace BackgroundServer
         private static bool _listenForCommands = true;
 
 
-        public static async Task Main(string[] args)
-        {
-            await StartServer();
-            await ListenForCommands();
-        }
+        public static async Task Main(string[] args) => await StartServer();
 
         private static async Task StartServer()
         {
@@ -40,6 +36,7 @@ namespace BackgroundServer
             NetworkStream stream = _client.GetStream();
             _writer = new BinaryWriter(stream, Encoding.UTF8, true);
             _reader = new BinaryReader(stream, Encoding.UTF8, true);
+            await ListenForCommands();
         }
 
         private static async Task ListenForCommands()
@@ -55,7 +52,7 @@ namespace BackgroundServer
                         await ExecuteCommand(command);
                     }
                 }
-                catch (ObjectDisposedException exception)
+                catch (IOException exception)
                 {
                     await ClientConnectionLost(exception.Message);
                 }
@@ -116,8 +113,6 @@ namespace BackgroundServer
                 Console.WriteLine("Type: {0}\nMessage{1}", exception.GetType(), exception.Message);
                 ServerResponse response = new ServerResponse(exception);
                 SendData(response.ToJson());
-                // Needed?
-                throw;
             }
         }
 
@@ -150,9 +145,9 @@ namespace BackgroundServer
             {
                 _writer.Write(data);
             }
-            catch (ObjectDisposedException exception)
+            catch (IOException exception)
             {
-                ClientConnectionLost(exception.Message).Wait();
+                await ClientConnectionLost(exception.Message);
             }
         }
 
@@ -160,6 +155,7 @@ namespace BackgroundServer
         {
             Console.WriteLine("Could not reach client.\nException Message: {0}", exceptionMessage);
             Console.WriteLine("Restarting server...");
+            MiBand2.DisconnectBand();
             await StartServer();
         }
     }

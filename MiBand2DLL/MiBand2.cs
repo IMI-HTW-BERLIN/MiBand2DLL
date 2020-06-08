@@ -111,6 +111,8 @@ namespace MiBand2DLL
         {
             if (triggerEvent)
                 DeviceConnectionChanged?.Invoke(false);
+
+            DeviceConnectionChanged = null;
             HeartRate.Dispose();
             Authentication.Dispose();
             if (_connectedBtDevice != null)
