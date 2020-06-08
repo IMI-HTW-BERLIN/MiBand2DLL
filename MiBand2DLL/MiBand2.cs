@@ -36,7 +36,6 @@ namespace MiBand2DLL
         /// <summary>
         /// Event for connection status changes. This event will fire when the band gets connected and disconnected.
         /// Will automatically reset all references on disconnect.
-        /// TODO: Should it do that automatically?
         /// <para>
         /// </para>
         /// </summary>
