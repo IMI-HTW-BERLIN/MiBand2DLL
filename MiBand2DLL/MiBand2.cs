@@ -3,16 +3,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
-using MiBand2DLL.CustomExceptions;
-using MiBand2DLL.CustomExceptions.HardwareRelatedExceptions;
-using MiBand2DLL.CustomExceptions.SoftwareRelatedException;
+using Data.CustomExceptions;
+using Data.CustomExceptions.HardwareRelatedExceptions;
+using Data.CustomExceptions.SoftwareRelatedException;
 using MiBand2DLL.lib;
 
 namespace MiBand2DLL
 {
     public static class MiBand2
     {
-        #region Fields
+        #region Variables
 
         #region Public
 
@@ -86,14 +86,16 @@ namespace MiBand2DLL
         /// <param name="name"></param>
         /// <exception cref="DeviceNotFoundException">Device with given name not found. Is it Paired?</exception>
         /// <exception cref="WindowsException"><see cref="BluetoothLEDevice.FromIdAsync"/> couldn't get device. Debugging required.</exception>
-        public static async Task ConnectToDeviceAsync(string name = Consts.General.MI_BAND_NAME)
+        public static async Task ConnectBandAsync(string name = Consts.General.MI_BAND_NAME)
         {
             if (_isInConnectionProcess)
                 throw new AccessDeniedException("In connection process. Can't access band atm.");
+
             _isInConnectionProcess = true;
             DeviceInformation device = await FindDeviceAsync(name);
             _connectedBtDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
             _isInConnectionProcess = false;
+
             if (_connectedBtDevice == null)
                 throw new WindowsException("Couldn't get BluetoothLEDevice from DeviceInformation. " +
                                            "Debugging required.");
@@ -104,13 +106,22 @@ namespace MiBand2DLL
         /// <summary>
         /// Disconnects the band by disposing all references. Band will stay paired though.
         /// </summary>
-        public static void DisconnectDevice()
+        /// <param name="triggerEvent">Should the <see cref="DeviceConnectionChanged"/> event be triggered?</param>
+        public static void DisconnectBand(bool triggerEvent = true)
         {
-            DeviceConnectionChanged?.Invoke(false);
+            if (triggerEvent)
+                DeviceConnectionChanged?.Invoke(false);
+
+            DeviceConnectionChanged = null;
             HeartRate.Dispose();
             Authentication.Dispose();
-            _connectedBtDevice?.Dispose();
-            _connectedBtDevice = null;
+            if (_connectedBtDevice != null)
+            {
+                _connectedBtDevice.ConnectionStatusChanged -= ConnectionStatusChanged;
+                _connectedBtDevice.Dispose();
+                _connectedBtDevice = null;
+            }
+
             // Needed to force an immediate update of the connection-status by deleting the removed references.
             GC.Collect();
         }
@@ -126,7 +137,7 @@ namespace MiBand2DLL
         /// </summary>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
         /// <exception cref="NotAuthenticatedException">Device is not authenticated.</exception>
-        public static async Task StartHeartRateMeasureAsync()
+        public static async Task StartMeasurementAsync()
         {
             if (IsConnectedAndAuthenticated())
                 await HeartRate.StartHeartRateMeasurementAsync();
@@ -196,7 +207,7 @@ namespace MiBand2DLL
         private static void ConnectionStatusChanged(BluetoothLEDevice sender, object args)
         {
             if (!Connected)
-                DisconnectDevice();
+                DisconnectBand();
             DeviceConnectionChanged?.Invoke(Connected);
         }
 

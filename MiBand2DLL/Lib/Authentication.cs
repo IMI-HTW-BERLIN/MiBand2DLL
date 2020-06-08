@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
-using MiBand2DLL.CustomExceptions.HardwareRelatedExceptions;
-using MiBand2DLL.CustomExceptions.SoftwareRelatedException;
+using Data.CustomExceptions.HardwareRelatedExceptions;
+using Data.CustomExceptions.SoftwareRelatedException;
+using MiBand2DLL.Util;
 
 namespace MiBand2DLL.lib
 {
@@ -50,9 +50,9 @@ namespace MiBand2DLL.lib
         private bool _isInAuthenticationProcess;
 
         /// <summary>
-        /// Used for waiting for a response from the band.
+        /// Used for delaying the current task until the band responded
         /// </summary>
-        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private bool _authEventCompleted;
 
         #endregion
 
@@ -131,6 +131,8 @@ namespace MiBand2DLL.lib
             if (!_isInitialized)
                 await InitializeAsync();
 
+            _authEventCompleted = false;
+
             if (inAuthenticationProcess)
                 _authCharacteristic.ValueChanged += ListenForAuthMessageAsync;
             else
@@ -139,7 +141,7 @@ namespace MiBand2DLL.lib
             List<byte> authKey = new List<byte>(Consts.Auth.AUTH_KEY);
             authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
             await _authCharacteristic.WriteValueAsync(authKey.ToArray().AsBuffer());
-            _waitHandle.WaitOne();
+            await WaitUntil(() => _authEventCompleted);
         }
 
         /// <summary>
@@ -150,14 +152,14 @@ namespace MiBand2DLL.lib
             _authCharacteristic.ValueChanged -= ListenForAuthMessageOneTime;
             byte[] bandMessages = args.CharacteristicValue.ToArray();
             if (bandMessages[2] == Consts.Auth.AUTH_SUCCESS)
-                _waitHandle.Set();
+                _authEventCompleted = true;
         }
 
         /// <summary>
         /// Checks each authentication-progress-level between band and program. Will be called every "level".
         /// </summary>
         /// <param name="sender">Sending characteristic</param>
-        /// <param name="args">Data received from the band</param>
+        /// <param name="args">Data2 received from the band</param>
         private async void ListenForAuthMessageAsync(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
             byte[] bandMessages = args.CharacteristicValue.ToArray();
@@ -167,7 +169,7 @@ namespace MiBand2DLL.lib
 
             // Check if current message is a authentication response and if it was successful
             if (messageType != Consts.Auth.AUTH_RESPONSE || messageStatus == Consts.Auth.AUTH_FAIL)
-                _waitHandle.Set();
+                _authEventCompleted = true;
 
 
             switch (lastMessageReceived)
@@ -182,7 +184,7 @@ namespace MiBand2DLL.lib
                     _authCharacteristic.ValueChanged -= ListenForAuthMessageAsync;
                     Authenticated = true;
                     _isInAuthenticationProcess = false;
-                    _waitHandle.Set();
+                    _authEventCompleted = true;
                     break;
             }
         }
@@ -215,7 +217,7 @@ namespace MiBand2DLL.lib
         /// <summary>
         /// Encrypt Secret key and last 16 bytes from response in AES/ECB/NoPadding Encryption.
         /// </summary>
-        /// <param name="data">Data to be encrypted.</param>
+        /// <param name="data">Data2 to be encrypted.</param>
         /// <returns>Byte Array containing the encrypted data.</returns>
         private static byte[] Encrypt(byte[] data)
         {
@@ -226,6 +228,18 @@ namespace MiBand2DLL.lib
 
             IBuffer buffEncrypt = CryptographicEngine.Encrypt(cKey, data.AsBuffer(), null);
             return buffEncrypt.ToArray();
+        }
+
+        /// <summary>
+        /// Waits until the given predicate is true. Will delay the current Task with the given frequency.
+        /// </summary>
+        /// <param name="predicate">Condition until which the task will be delayed.</param>
+        /// <param name="checkFrequency">Frequency for checking the condition.</param>
+        /// <returns></returns>
+        private static async Task WaitUntil(Func<bool> predicate, int checkFrequency = 25)
+        {
+            while (!predicate.Invoke())
+                await Task.Delay(checkFrequency);
         }
 
         #endregion

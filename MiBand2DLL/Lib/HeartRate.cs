@@ -3,8 +3,8 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using MiBand2DLL.CustomExceptions.HardwareRelatedExceptions;
-using MiBand2DLL.CustomExceptions.SoftwareRelatedException;
+using Data.CustomExceptions.HardwareRelatedExceptions;
+using Data.CustomExceptions.SoftwareRelatedException;
 
 namespace MiBand2DLL.lib
 {
@@ -13,7 +13,7 @@ namespace MiBand2DLL.lib
     /// </summary>
     internal class HeartRate
     {
-        #region Fields
+        #region Variables
 
         #region Public
 
@@ -76,6 +76,8 @@ namespace MiBand2DLL.lib
 
             _hrMeasurementCharacteristic = null;
             _hrControlPointCharacteristic = null;
+
+            OnHeartRateChange = null;
         }
 
         /// <summary>
