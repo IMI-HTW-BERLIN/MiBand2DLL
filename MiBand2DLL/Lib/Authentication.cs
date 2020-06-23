@@ -141,7 +141,7 @@ namespace MiBand2DLL.lib
             List<byte> authKey = new List<byte>(Consts.Auth.AUTH_KEY);
             authKey.AddRange(Consts.Auth.AUTH_SECRET_KEY);
             await _authCharacteristic.WriteValueAsync(authKey.ToArray().AsBuffer());
-            await WaitUntil(() => _authEventCompleted);
+            await AsyncExtension.WaitUntil(() => _authEventCompleted);
         }
 
         /// <summary>
@@ -167,9 +167,23 @@ namespace MiBand2DLL.lib
             byte lastMessageReceived = bandMessages[1];
             byte messageStatus = bandMessages[2];
 
-            // Check if current message is a authentication response and if it was successful
-            if (messageType != Consts.Auth.AUTH_RESPONSE || messageStatus == Consts.Auth.AUTH_FAIL)
+            // Check if current message is a authentication response.
+            if (messageType != Consts.Auth.AUTH_RESPONSE)
+                return;
+
+            // Check if band accepted authentication.
+            if (messageStatus == Consts.Auth.AUTH_FAIL)
+            {
                 _authEventCompleted = true;
+                throw new AuthenticationException("Band refused authentication!");
+            }
+
+            // Check if user touched the band.
+            if (messageStatus == Consts.Auth.AUTH_NO_USER_INPUT)
+            {
+                _authEventCompleted = true;
+                throw new AuthenticationException("User did not touch band. Authentication abandoned.");
+            }
 
 
             switch (lastMessageReceived)
@@ -228,18 +242,6 @@ namespace MiBand2DLL.lib
 
             IBuffer buffEncrypt = CryptographicEngine.Encrypt(cKey, data.AsBuffer(), null);
             return buffEncrypt.ToArray();
-        }
-
-        /// <summary>
-        /// Waits until the given predicate is true. Will delay the current Task with the given frequency.
-        /// </summary>
-        /// <param name="predicate">Condition until which the task will be delayed.</param>
-        /// <param name="checkFrequency">Frequency for checking the condition.</param>
-        /// <returns></returns>
-        private static async Task WaitUntil(Func<bool> predicate, int checkFrequency = 25)
-        {
-            while (!predicate.Invoke())
-                await Task.Delay(checkFrequency);
         }
 
         #endregion

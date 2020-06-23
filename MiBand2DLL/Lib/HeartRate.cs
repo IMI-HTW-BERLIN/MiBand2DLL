@@ -5,6 +5,7 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Data.CustomExceptions.HardwareRelatedExceptions;
 using Data.CustomExceptions.SoftwareRelatedException;
+using Data.ResponseTypes;
 
 namespace MiBand2DLL.lib
 {
@@ -20,7 +21,7 @@ namespace MiBand2DLL.lib
         /// <summary>
         /// Will be invoked whenever a new heart rate is measured.
         /// </summary>
-        public static event Action<int> OnHeartRateChange;
+        public static event Action<HeartRateResponse> OnHeartRateChange;
 
         #endregion
 
@@ -56,6 +57,22 @@ namespace MiBand2DLL.lib
         /// Whether th heart rate functionality is initialized.
         /// </summary>
         private bool _isInitialized;
+
+        /// <summary>
+        /// Whether we are currently waiting for the waitTask. Used for limiting the requests to one every 12 seconds.
+        /// </summary>
+        private bool _sendingNextHRRequest;
+
+        /// <summary>
+        /// The time when the last measurement got returned from the band. Used for checking if the heart rate gets
+        /// repeated (don't ask me why the band does this by default).
+        /// </summary>
+        private long _lastTimeMeasureReceived;
+
+        /// <summary>
+        /// The last heart rate that got received. Used for checking if the heart rate gets repeated.
+        /// </summary>
+        private int _lastHeartRate;
 
         #endregion
 
@@ -163,20 +180,43 @@ namespace MiBand2DLL.lib
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args">The received hr-measurement</param>
-        private void HeartRateReceived(GattCharacteristic sender, GattValueChangedEventArgs args)
+        private async void HeartRateReceived(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            int lastHeartRate = args.CharacteristicValue.ToArray()[1];
-            OnHeartRateChange?.Invoke(lastHeartRate);
-            // TODO: Test how often this is needed
-            SendNextHRRequest().Wait();
+            int heartRate = args.CharacteristicValue.ToArray()[1];
+            long currentTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+
+            bool isRepeating = false;
+            long measuringTime = currentTime - _lastTimeMeasureReceived;
+            if (_lastTimeMeasureReceived != 0 && measuringTime > 4500)
+            {
+                if (_lastHeartRate == heartRate)
+                    isRepeating = true;
+                _lastHeartRate = heartRate;
+            }
+            else
+                _lastHeartRate = 0;
+
+            _lastTimeMeasureReceived = currentTime;
+
+
+            OnHeartRateChange?.Invoke(new HeartRateResponse(heartRate, isRepeating, measuringTime));
+            await SendNextHRRequest();
         }
 
         /// <summary>
         /// Sends a request to measure the heart rate again.
-        /// Used by <see cref="StartHeartRateMeasurementAsync"/>.
+        /// Used by <see cref="HeartRateReceived"/>.
         /// </summary>
-        private async Task SendNextHRRequest() =>
+        private async Task SendNextHRRequest()
+        {
+            if (_sendingNextHRRequest)
+                return;
+
+            _sendingNextHRRequest = true;
+            await Task.Delay(12000);
+            _sendingNextHRRequest = false;
             await _hrControlPointCharacteristic.WriteValueAsync(Consts.HeartRate.HR_CONTINUE_COMMAND.AsBuffer());
+        }
 
         #endregion
 

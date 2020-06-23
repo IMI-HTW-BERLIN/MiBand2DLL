@@ -64,6 +64,7 @@ namespace MiBand2DLL.lib
             public const byte AUTH_SECOND_KEY_RECEIVED = 0x02;
             public const byte AUTH_ENCRYPTED_KEY_RECEIVED = 0x03;
             public const byte AUTH_SUCCESS = 0x01;
+            public const byte AUTH_NO_USER_INPUT = 0x02;
             public const byte AUTH_FAIL = 0x04;
         }
     }

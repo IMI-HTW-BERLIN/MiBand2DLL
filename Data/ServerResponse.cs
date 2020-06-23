@@ -15,12 +15,25 @@ namespace Data
     /// </summary>
     public class ServerResponse
     {
+        /// <summary>
+        /// Different statuses of the response.
+        /// </summary>
         public enum ResponseStatus { Success, Failure }
 
+        /// <summary>
+        /// The data of this response.
+        /// </summary>
         public object Data { get; }
+
+        /// <summary>
+        /// The status of this response. See: <see cref="ResponseStatus"/>.
+        /// </summary>
         public ResponseStatus Status { get; }
 
-        private Type _dataType;
+        /// <summary>
+        /// The type of the data. Used for deserializing. 
+        /// </summary>
+        private readonly Type _dataType;
 
         public ServerResponse(object data, ResponseStatus status = ResponseStatus.Success)
         {
@@ -33,6 +46,17 @@ namespace Data
         {
         }
 
+        /// <summary>
+        /// Creates an a ServerResponse that holds an empty string as data with a successful <see cref="ResponseStatus"/>.
+        /// This is considered as an "empty" response, used to simply return a success.
+        /// </summary>
+        /// <returns>An "empty" successful response.</returns>
+        public static ServerResponse EmptySuccess() => new ServerResponse(string.Empty);
+
+        /// <summary>
+        /// Converts the ServerResponse to a JSON-String.
+        /// </summary>
+        /// <returns>The ServerResponse-Object as a JSON-String.</returns>
         public string ToJson()
         {
             Dictionary<string, string> jsonDictionary = new Dictionary<string, string>()
@@ -44,6 +68,12 @@ namespace Data
             return JsonConvert.SerializeObject(jsonDictionary);
         }
 
+        /// <summary>
+        /// Converts a JSON-String (representing a ServerResponse) back to an object.
+        /// </summary>
+        /// <param name="json">The JSON-String representing the ServerResponse.</param>
+        /// <returns>The ServerResponse converted from the JSON-String.</returns>
+        /// <exception cref="TypeLoadException">Data has no type. Cannot create ServerStatus with type-less data.</exception>
         public static ServerResponse FromJson(string json)
         {
             Dictionary<string, string> jsonDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);

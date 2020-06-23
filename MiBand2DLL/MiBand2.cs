@@ -6,6 +6,7 @@ using Windows.Devices.Enumeration;
 using Data.CustomExceptions;
 using Data.CustomExceptions.HardwareRelatedExceptions;
 using Data.CustomExceptions.SoftwareRelatedException;
+using Data.ResponseTypes;
 using MiBand2DLL.lib;
 
 namespace MiBand2DLL
@@ -159,7 +160,7 @@ namespace MiBand2DLL
         /// measurement is enabled and a new heart rate is received.
         /// </summary>
         /// <param name="method">Method to be subscribed to the OnHeartRateChange event</param>
-        public static void SubscribeToHeartRateChange(Action<int> method)
+        public static void SubscribeToHeartRateChange(Action<HeartRateResponse> method)
         {
             HeartRate.OnHeartRateChange += method;
         }

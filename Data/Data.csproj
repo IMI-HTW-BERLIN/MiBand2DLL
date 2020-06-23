@@ -46,6 +46,7 @@
         <Compile Include="CustomExceptions\HardwareRelatedExceptions\DeviceNotFoundException.cs"/>
         <Compile Include="CustomExceptions\ICustomException.cs"/>
         <Compile Include="CustomExceptions\SoftwareRelatedException\AccessDeniedException.cs"/>
+        <Compile Include="CustomExceptions\SoftwareRelatedException\AuthenticationException.cs"/>
         <Compile Include="CustomExceptions\SoftwareRelatedException\NotAuthenticatedException.cs"/>
         <Compile Include="CustomExceptions\WindowsException.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
