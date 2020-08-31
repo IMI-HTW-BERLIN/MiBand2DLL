@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Data</name>
+    </assembly>
+    <members>
+        <member name="T:Data.Consts">
+            <summary>
+            Contains all constant values.
+            </summary>
+        </member>
+        <member name="T:Data.Consts.ServerData">
+            <summary>
+            All server-related constant values.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.ServerData.PORT">
+            <summary>
+            The port that will be used for the server.
+            </summary>
+        </member>
+        <member name="T:Data.Consts.Command">
+            <summary>
+            The different commands that can be send to the server/band.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.ConnectBand">
+            <summary>
+            Connects the band to the computer.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.DisconnectBand">
+            <summary>
+            Disconnects the band from the computer.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.AuthenticateBand">
+            <summary>
+            Authenticates the band, allowing more features.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.StartMeasurement">
+            <summary>
+            Starts the heart rate measurement.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.StopMeasurement">
+            <summary>
+            Stops the heart rate measurement.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.SubscribeToHeartRateChange">
+            <summary>
+            Will automatically send the heart rate change to the client.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.SubscribeToDeviceConnectionStatusChanged">
+            <summary>
+            Will automatically send the connection status change to the client.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.AskUserForTouch">
+            <summary>
+            Ask the user to touch the band.
+            </summary>
+        </member>
+        <member name="F:Data.Consts.Command.StopServer">
+            <summary>
+            Stops the server and disconnects the band.
+            </summary>
+        </member>
+        <member name="T:Data.CustomExceptions.ICustomException">
+            <summary>
+            Used as a tag for the custom exceptions
+            </summary>
+        </member>
+        <member name="T:Data.CustomExceptions.SoftwareRelatedException.AccessDeniedException">
+            <summary>
+            Will happen when device functionality is being accessed at multiple points.
+            </summary>
+        </member>
+        <member name="T:Data.ResponseTypes.DeviceConnectionResponse">
+            <summary>
+            A small class used to keep track of the connection status of a device.
+            </summary>
+        </member>
+        <member name="P:Data.ResponseTypes.DeviceConnectionResponse.DeviceIndex">
+            <summary>
+            The device index of the device that this connection response is related to.
+            </summary>
+        </member>
+        <member name="P:Data.ResponseTypes.DeviceConnectionResponse.IsConnected">
+            <summary>
+            Whether the device is connected or not.
+            </summary>
+        </member>
+        <member name="M:Data.ResponseTypes.DeviceConnectionResponse.#ctor(System.Int32,System.Boolean)">
+            <summary>
+            Creates a DeviceConnectionResponse object with the given deviceIndex and connection status.
+            </summary>
+        </member>
+        <member name="T:Data.ResponseTypes.HeartRateResponse">
+            <summary>
+            A small struct used for holding data related to the measurement of a heart rate.
+            </summary>
+        </member>
+        <member name="P:Data.ResponseTypes.HeartRateResponse.DeviceIndex">
+            <summary>
+            The device index of the MiBand that this heart rate was send from.
+            </summary>
+        </member>
+        <member name="P:Data.ResponseTypes.HeartRateResponse.HeartRate">
+            <summary>
+            The heart rate of this response.
+            </summary>
+        </member>
+        <member name="P:Data.ResponseTypes.HeartRateResponse.IsRepeating">
+            <summary>
+            Whether this measurement is a repetition of the last one.
+            (Band does this by default if no new heart rate is measured)
+            </summary>
+        </member>
+        <member name="P:Data.ResponseTypes.HeartRateResponse.MeasureTime">
+            <summary>
+            The time the measurement took.
+            </summary>
+        </member>
+        <member name="M:Data.ResponseTypes.HeartRateResponse.#ctor(System.Int32,System.Int32,System.Boolean,System.Int64)">
+            <summary>
+            Creates a HeartRateResponse object with the given data.
+            </summary>
+        </member>
+        <member name="T:Data.ServerCommand">
+            <summary>
+            A ServerCommand will be send from the client to the server, where the command will be executed.
+            The ServerCommand includes a devices-index and the command itself.
+            </summary>
+        </member>
+        <member name="P:Data.ServerCommand.DeviceIndex">
+            <summary>
+            The device index of the device that this command is intended for.
+            </summary>
+        </member>
+        <member name="P:Data.ServerCommand.Command">
+            <summary>
+            The command for the device.
+            </summary>
+        </member>
+        <member name="M:Data.ServerCommand.FromString(System.String)">
+            <summary>
+            Returns a ServerCommand created from the given string.
+            </summary>
+            <param name="serverCommandString">The ServerCommand-string including the deviceIndex and the command.</param>
+            <returns>A ServerCommand created from the given string.</returns>
+        </member>
+        <member name="M:Data.ServerCommand.ToString">
+            <summary>
+            Creates a string from the ServerCommand object, using a specific format.
+            This allows the reverse operation, creating a ServerCommand from this string.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Data.ServerResponse">
+            <summary>
+            Used for sending responses from the server to the client. Includes following responses:
+            <para><see cref="T:Data.CustomExceptions.ICustomException"/>: If an exception occured. Will include the exception message as data.</para>
+            <para><see cref="T:Data.ResponseTypes.DeviceConnectionResponse"/>: If subscribed to event and whenever device connection status
+            changes. Will include whether the device is now disconnected or connected.</para>
+            <para><see cref="T:Data.ResponseTypes.HeartRateResponse"/> If subscribed to event and whenever a new heart rate is measured.</para>
+            </summary>
+        </member>
+        <member name="T:Data.ServerResponse.ResponseStatus">
+            <summary>
+            Different statuses of the response.
+            </summary>
+        </member>
+        <member name="P:Data.ServerResponse.Data">
+            <summary>
+            The data of this response.
+            </summary>
+        </member>
+        <member name="P:Data.ServerResponse.Status">
+            <summary>
+            The status of this response. See: <see cref="T:Data.ServerResponse.ResponseStatus"/>.
+            </summary>
+        </member>
+        <member name="F:Data.ServerResponse._dataType">
+            <summary>
+            The type of the data. Used for deserializing. 
+            </summary>
+        </member>
+        <member name="M:Data.ServerResponse.#ctor(System.Object,Data.ServerResponse.ResponseStatus)">
+            <summary>
+            Creates a ServerResponse with the given data and ResponseStatus.
+            </summary>
+            <param name="data"></param>
+            <param name="status"></param>
+        </member>
+        <member name="M:Data.ServerResponse.#ctor(System.Exception)">
+            <summary>
+            Creates a ServerResponse-Exception with the given Exception.
+            </summary>
+            <param name="exception"></param>
+        </member>
+        <member name="M:Data.ServerResponse.EmptySuccess">
+            <summary>
+            Creates an a ServerResponse that holds an empty string as data with a successful <see cref="T:Data.ServerResponse.ResponseStatus"/>.
+            This is considered as an "empty" response, used to simply return a success.
+            </summary>
+            <returns>An "empty" successful response.</returns>
+        </member>
+        <member name="M:Data.ServerResponse.ToJson">
+            <summary>
+            Converts the ServerResponse to a JSON-String.
+            </summary>
+            <returns>The ServerResponse-Object as a JSON-String.</returns>
+        </member>
+        <member name="M:Data.ServerResponse.FromJson(System.String)">
+            <summary>
+            Converts a JSON-String (representing a ServerResponse) back to an object.
+            </summary>
+            <param name="json">The JSON-String representing the ServerResponse.</param>
+            <returns>The ServerResponse converted from the JSON-String.</returns>
+            <exception cref="T:System.TypeLoadException">Data has no type. Cannot create ServerStatus with type-less data.</exception>
+        </member>
+    </members>
+</doc>

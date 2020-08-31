@@ -18,6 +18,11 @@ namespace MiBand2DLL
         #region Public
 
         /// <summary>
+        /// The device index of the physical MiBand2 that this object represents.
+        /// </summary>
+        public int DeviceIndex { get; private set; }
+
+        /// <summary>
         /// The connected MiBand2 reference. Null if no band is connected.
         /// </summary>
         public BluetoothLEDevice ConnectedBtDevice => _connectedBtDevice;
@@ -54,11 +59,6 @@ namespace MiBand2DLL
         #region Private
 
         /// <summary>
-        /// The device index of the physical MiBand2 that this object represents.
-        /// </summary>
-        private int _deviceIndex;
-
-        /// <summary>
         /// Heart rate functionality used to measure the heart rate.
         /// </summary>
         private readonly HeartRate _heartRate;
@@ -88,7 +88,7 @@ namespace MiBand2DLL
 
         public MiBand2(int deviceIndex)
         {
-            _deviceIndex = deviceIndex;
+            DeviceIndex = deviceIndex;
             _heartRate = new HeartRate(this);
             _authentication = new Authentication(this);
         }
@@ -105,7 +105,7 @@ namespace MiBand2DLL
                 throw new AccessDeniedException("In connection process. Can't access band atm.");
 
             _isInConnectionProcess = true;
-            DeviceInformation device = await FindDeviceAsync(_deviceIndex, name);
+            DeviceInformation device = await FindDeviceAsync(DeviceIndex, name);
             _connectedBtDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
             _isInConnectionProcess = false;
 
@@ -123,7 +123,7 @@ namespace MiBand2DLL
         public void DisconnectBand(bool triggerEvent = true)
         {
             if (triggerEvent)
-                DeviceConnectionChanged?.Invoke(_deviceIndex, false);
+                DeviceConnectionChanged?.Invoke(DeviceIndex, false);
 
             DeviceConnectionChanged = null;
             _heartRate.Dispose();
@@ -220,7 +220,7 @@ namespace MiBand2DLL
         {
             if (!Connected)
                 DisconnectBand();
-            DeviceConnectionChanged?.Invoke(_deviceIndex, Connected);
+            DeviceConnectionChanged?.Invoke(DeviceIndex, Connected);
         }
 
         /// <summary>

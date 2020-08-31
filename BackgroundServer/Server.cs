@@ -37,7 +37,10 @@ namespace BackgroundServer
         /// </summary>
         private static bool _listenForCommands = true;
 
-        private static List<MiBand2> _miBands = new List<MiBand2>();
+        /// <summary>
+        /// A list of all connected mi bands.
+        /// </summary>
+        private static readonly List<MiBand2> MiBands = new List<MiBand2>();
 
         /// <summary>
         /// Simply starts the server with the execution of the exe.
@@ -49,6 +52,7 @@ namespace BackgroundServer
         /// </summary>
         private static async Task StartServer()
         {
+            MiBands.Clear();
             _server?.Stop();
             _listenForCommands = true;
             _server = TcpListener.Create(Consts.ServerData.PORT);
@@ -96,13 +100,13 @@ namespace BackgroundServer
         private static async Task ExecuteCommand(ServerCommand serverCommand)
         {
             int deviceIndex = serverCommand.DeviceIndex;
-            MiBand2 miBand2 = _miBands[deviceIndex];
+            MiBand2 miBand2 = MiBands[deviceIndex];
             try
             {
                 switch (serverCommand.Command)
                 {
                     case Consts.Command.ConnectBand:
-                        _miBands.Add(new MiBand2(_miBands.Count));
+                        MiBands.Add(new MiBand2(MiBands.Count));
                         await miBand2.ConnectBandAsync();
                         SendSuccess(deviceIndex);
                         break;
@@ -217,7 +221,7 @@ namespace BackgroundServer
         {
             Console.WriteLine("Could not reach client.\nException Message: {0}", exceptionMessage);
             Console.WriteLine("Restarting server...");
-            _miBands[deviceIndex].DisconnectBand();
+            MiBands[deviceIndex].DisconnectBand();
             await StartServer();
         }
     }
