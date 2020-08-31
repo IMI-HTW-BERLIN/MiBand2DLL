@@ -27,19 +27,12 @@ namespace Data.ServerCommunication
         /// </para>
         /// </summary>
         /// <returns></returns>
-        public ServerCommand ReadServerCommand()
-        {
-            using (_reader)
-                return ServerCommand.FromString(_reader.ReadString());
-        }
+        public ServerCommand ReadServerCommand() => ServerCommand.FromString(_reader.ReadString());
 
         /// <summary>
         /// Starts the task of reading async from the stream.
         /// </summary>
-        public void StartReadTaskAsync()
-        {
-            using (_reader) _readingTask = _reader.ReadStringAsync();
-        }
+        public void StartReadTaskAsync() => _readingTask = _reader.ReadStringAsync();
 
         /// <summary>
         /// Returns the current completion state of the reading task.
