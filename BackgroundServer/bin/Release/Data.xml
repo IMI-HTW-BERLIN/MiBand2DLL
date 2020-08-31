@@ -224,7 +224,7 @@
             Returns the ServerCommand read from the stream.
             Should only be called after <see cref="M:Data.ServerCommunication.ServerReader.IsReadTaskCompleted"/> returns true.
             </summary>
-            <returns>The ServerCommand object received from the stream.</returns>
+            <returns>The string received from the stream.</returns>
         </member>
         <member name="T:Data.ServerCommunication.ServerResponse">
             <summary>
@@ -306,6 +306,12 @@
             Writes the given string to the stream.
             </summary>
             <param name="data">The string data to be written to the stream.</param>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerWriter.WriteServerCommand(Data.ServerCommunication.ServerCommand)">
+            <summary>
+            Writes the given ServerCommand to the stream.
+            </summary>
+            <param name="serverCommand">The ServerCommand to be written to the stream.</param>
         </member>
     </members>
 </doc>

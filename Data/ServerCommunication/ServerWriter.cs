@@ -25,5 +25,14 @@ namespace Data.ServerCommunication
         {
             using (_writer) _writer.Write(data);
         }
+
+        /// <summary>
+        /// Writes the given ServerCommand to the stream.
+        /// </summary>
+        /// <param name="serverCommand">The ServerCommand to be written to the stream.</param>
+        public void WriteServerCommand(ServerCommand serverCommand)
+        {
+            using (_writer) _writer.Write(serverCommand.ToString());
+        }
     }
 }

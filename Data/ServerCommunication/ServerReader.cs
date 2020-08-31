@@ -29,7 +29,8 @@ namespace Data.ServerCommunication
         /// <returns></returns>
         public ServerCommand ReadServerCommand()
         {
-            using (_reader) return ServerCommand.FromString(_reader.ReadString());
+            using (_reader)
+                return ServerCommand.FromString(_reader.ReadString());
         }
 
         /// <summary>
@@ -50,8 +51,8 @@ namespace Data.ServerCommunication
         /// Returns the ServerCommand read from the stream.
         /// Should only be called after <see cref="IsReadTaskCompleted"/> returns true.
         /// </summary>
-        /// <returns>The ServerCommand object received from the stream.</returns>
-        public ServerCommand FinishReadTaskAsync() =>
-            _readingTask.IsCompleted ? ServerCommand.FromString(_readingTask.Result) : null;
+        /// <returns>The string received from the stream.</returns>
+        public string FinishReadTaskAsync() =>
+            _readingTask.IsCompleted ? _readingTask.Result : null;
     }
 }
