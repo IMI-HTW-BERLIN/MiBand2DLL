@@ -22,6 +22,12 @@ namespace Data
 
         private const string SEPARATOR = "-";
 
+        public ServerCommand(int deviceIndex, Consts.Command command)
+        {
+            DeviceIndex = deviceIndex;
+            Command = command;
+        }
+
         /// <summary>
         /// Returns a ServerCommand created from the given string.
         /// </summary>
@@ -29,12 +35,10 @@ namespace Data
         /// <returns>A ServerCommand created from the given string.</returns>
         public static ServerCommand FromString(string serverCommandString)
         {
+            if (string.IsNullOrEmpty(serverCommandString))
+                return null;
             string[] data = Regex.Split(serverCommandString);
-            return new ServerCommand
-            {
-                DeviceIndex = int.Parse(data[0]),
-                Command = (Consts.Command) int.Parse(data[1])
-            };
+            return new ServerCommand(int.Parse(data[0]), (Consts.Command) int.Parse(data[1]));
         }
 
         /// <summary>

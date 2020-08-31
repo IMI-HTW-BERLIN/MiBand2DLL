@@ -82,6 +82,8 @@ namespace BackgroundServer
                         // BinaryReader actually blocks the thread if there is no data in the stream
                         // -> while-loop paused until command received
                         ServerCommand serverCommand = ServerCommand.FromString(_reader.ReadString());
+                        if (serverCommand == null)
+                            continue;
                         Console.WriteLine($"Command: {serverCommand.Command} for device: {serverCommand.DeviceIndex}");
                         await ExecuteCommand(serverCommand);
                     }
