@@ -32,9 +32,7 @@ namespace MiBand2DLL.lib
         /// <param name="device"></param>
         /// <param name="serviceUuid"></param>
         /// <returns></returns>
-        public static async Task<GattDeviceService> GetServiceByUuid(BluetoothLEDevice device, Guid serviceUuid)
-        {
-            return (await device.GetGattServicesForUuidAsync(serviceUuid)).Services[0];
-        }
+        public static async Task<GattDeviceService> GetServiceByUuid(BluetoothLEDevice device, Guid serviceUuid) =>
+            (await device.GetGattServicesForUuidAsync(serviceUuid)).Services[0];
     }
 }

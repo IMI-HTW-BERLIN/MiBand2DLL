@@ -74,6 +74,11 @@ namespace MiBand2DLL.lib
         /// </summary>
         private int _lastHeartRate;
 
+        /// <summary>
+        /// Back-Reference to owning MiBand2. Needed for getting Services from the band.
+        /// </summary>
+        private readonly MiBand2 _miBand2;
+
         #endregion
 
         #endregion
@@ -81,6 +86,8 @@ namespace MiBand2DLL.lib
         #region Methods
 
         #region Public
+
+        public HeartRate(MiBand2 miBand2) => _miBand2 = miBand2;
 
         /// <summary>
         /// Dispose of all references. This is needed to disconnect the device.

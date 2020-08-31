@@ -54,6 +54,11 @@ namespace MiBand2DLL.lib
         /// </summary>
         private bool _authEventCompleted;
 
+        /// <summary>
+        /// Back-Reference to owning MiBand2. Needed for getting Services from the band.
+        /// </summary>
+        private readonly MiBand2 _miBand2;
+
         #endregion
 
         #endregion
@@ -61,6 +66,8 @@ namespace MiBand2DLL.lib
         #region Methods
 
         #region Public
+
+        public Authentication(MiBand2 miBand2) => _miBand2 = miBand2;
 
         /// <summary>
         /// Dispose of all references. This is needed to disconnect the device.
@@ -103,7 +110,7 @@ namespace MiBand2DLL.lib
         /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
         private async Task InitializeAsync()
         {
-            _authService = await Gatt.GetServiceByUuid(MiBand2.ConnectedBtDevice, Consts.Guids.AUTH_SERVICE);
+            _authService = await Gatt.GetServiceByUuid(_miBand2.ConnectedBtDevice, Consts.Guids.AUTH_SERVICE);
             // No service, no device.
             if (_authService == null)
                 throw new DeviceDisconnectedException("Couldn't get service, the device seems to be disconnected.");

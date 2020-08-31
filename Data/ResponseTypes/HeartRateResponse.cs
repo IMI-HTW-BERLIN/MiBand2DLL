@@ -9,6 +9,11 @@ namespace Data.ResponseTypes
     public struct HeartRateResponse
     {
         /// <summary>
+        /// The device index of the MiBand that this heart rate was send from.
+        /// </summary>
+        public int DeviceIndex { get; private set; }
+
+        /// <summary>
         /// The heart rate of this response.
         /// </summary>
         public int HeartRate { get; private set; }
@@ -24,8 +29,12 @@ namespace Data.ResponseTypes
         /// </summary>
         public long MeasureTime { get; private set; }
 
-        public HeartRateResponse(int heartRate, bool isRepeating, long measureTime)
+        /// <summary>
+        /// Creates a HeartRateResponse object with the given data.
+        /// </summary>
+        public HeartRateResponse(int deviceIndex, int heartRate, bool isRepeating, long measureTime)
         {
+            DeviceIndex = deviceIndex;
             HeartRate = heartRate;
             IsRepeating = isRepeating;
             MeasureTime = measureTime;
