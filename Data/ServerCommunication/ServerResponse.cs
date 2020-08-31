@@ -4,7 +4,7 @@ using Data.CustomExceptions;
 using Data.ResponseTypes;
 using Newtonsoft.Json;
 
-namespace Data
+namespace Data.ServerCommunication
 {
     /// <summary>
     /// Used for sending responses from the server to the client. Includes following responses:

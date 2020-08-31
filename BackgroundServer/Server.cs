@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using Data;
 using Data.ResponseTypes;
+using Data.ServerCommunication;
 using MiBand2DLL;
 
 namespace BackgroundServer
@@ -25,12 +25,12 @@ namespace BackgroundServer
         /// <summary>
         /// BinaryWriter used for writing to the client
         /// </summary>
-        private static BinaryWriter _writer;
+        private static ServerWriter _writer;
 
         /// <summary>
         /// BinaryReader used for reading received commands from the client.
         /// </summary>
-        private static BinaryReader _reader;
+        private static ServerReader _reader;
 
         /// <summary>
         /// Whether we are currently listening for commands. Used as a stopping-token.
@@ -63,8 +63,8 @@ namespace BackgroundServer
             Console.WriteLine("Client connected.");
 
             NetworkStream stream = _client.GetStream();
-            _writer = new BinaryWriter(stream, Encoding.UTF8, true);
-            _reader = new BinaryReader(stream, Encoding.UTF8, true);
+            _writer = new ServerWriter(stream);
+            _reader = new ServerReader(stream);
             await ListenForCommands();
         }
 
@@ -73,25 +73,22 @@ namespace BackgroundServer
         /// </summary>
         private static async Task ListenForCommands()
         {
-            using (_reader)
+            try
             {
-                try
+                while (_listenForCommands)
                 {
-                    while (_listenForCommands)
-                    {
-                        // BinaryReader actually blocks the thread if there is no data in the stream
-                        // -> while-loop paused until command received
-                        ServerCommand serverCommand = ServerCommand.FromString(_reader.ReadString());
-                        if (serverCommand == null)
-                            continue;
-                        Console.WriteLine($"Command: {serverCommand.Command} for device: {serverCommand.DeviceIndex}");
-                        await ExecuteCommand(serverCommand);
-                    }
+                    // BinaryReader actually blocks the thread if there is no data in the stream
+                    // -> while-loop paused until command received
+                    ServerCommand serverCommand = _reader.ReadServerCommand();
+                    if (serverCommand == null)
+                        continue;
+                    Console.WriteLine($"Command: {serverCommand.Command} for device: {serverCommand.DeviceIndex}");
+                    await ExecuteCommand(serverCommand);
                 }
-                catch (IOException exception)
-                {
-                    await ClientConnectionLost(0, exception.Message);
-                }
+            }
+            catch (IOException exception)
+            {
+                await ClientConnectionLost(0, exception.Message);
             }
         }
 
@@ -102,13 +99,14 @@ namespace BackgroundServer
         private static async Task ExecuteCommand(ServerCommand serverCommand)
         {
             int deviceIndex = serverCommand.DeviceIndex;
+            if (deviceIndex > MiBands.Count - 1)
+                MiBands.Add(new MiBand2(MiBands.Count));
             MiBand2 miBand2 = MiBands[deviceIndex];
             try
             {
                 switch (serverCommand.Command)
                 {
                     case Consts.Command.ConnectBand:
-                        MiBands.Add(new MiBand2(MiBands.Count));
                         await miBand2.ConnectBandAsync();
                         SendSuccess(deviceIndex);
                         break;

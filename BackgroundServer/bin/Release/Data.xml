@@ -4,6 +4,26 @@
         <name>Data</name>
     </assembly>
     <members>
+        <member name="T:Data.ClassExtender">
+            <summary>
+            Class that contains extending methods.
+            </summary>
+        </member>
+        <member name="M:Data.ClassExtender.ReadStringAsync(System.IO.BinaryReader)">
+            <summary>
+            BinaryReader's <see cref="M:System.IO.BinaryReader.ReadString"/> method will block the current thread until data is received.
+            Use this for reading data asynchronously
+            <example>
+            A example use-case would be the following
+            <code>
+            Task&lt;string&gt; task = reader.ReadStringAsync();
+            yield return new WaitUntil(() => task.IsCompleted)
+            string data = task.Result;
+            </code>
+            </example>
+            </summary>
+            <returns>The task of reading a string from the BinaryReader's stream.</returns>
+        </member>
         <member name="T:Data.Consts">
             <summary>
             Contains all constant values.
@@ -130,37 +150,83 @@
             Creates a HeartRateResponse object with the given data.
             </summary>
         </member>
-        <member name="T:Data.ServerCommand">
+        <member name="T:Data.ServerCommunication.ServerCommand">
             <summary>
             A ServerCommand will be send from the client to the server, where the command will be executed.
             The ServerCommand includes a devices-index and the command itself.
             </summary>
         </member>
-        <member name="P:Data.ServerCommand.DeviceIndex">
+        <member name="P:Data.ServerCommunication.ServerCommand.DeviceIndex">
             <summary>
             The device index of the device that this command is intended for.
             </summary>
         </member>
-        <member name="P:Data.ServerCommand.Command">
+        <member name="P:Data.ServerCommunication.ServerCommand.Command">
             <summary>
             The command for the device.
             </summary>
         </member>
-        <member name="M:Data.ServerCommand.FromString(System.String)">
+        <member name="M:Data.ServerCommunication.ServerCommand.#ctor(System.Int32,Data.Consts.Command)">
+            <summary>
+            Creates a ServerCommand object with the given deviceIndex and command.
+            </summary>
+            <param name="deviceIndex">The index of the device.</param>
+            <param name="command">The command for the device.</param>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerCommand.FromString(System.String)">
             <summary>
             Returns a ServerCommand created from the given string.
             </summary>
             <param name="serverCommandString">The ServerCommand-string including the deviceIndex and the command.</param>
             <returns>A ServerCommand created from the given string.</returns>
         </member>
-        <member name="M:Data.ServerCommand.ToString">
+        <member name="M:Data.ServerCommunication.ServerCommand.ToString">
             <summary>
             Creates a string from the ServerCommand object, using a specific format.
             This allows the reverse operation, creating a ServerCommand from this string.
             </summary>
             <returns></returns>
         </member>
-        <member name="T:Data.ServerResponse">
+        <member name="T:Data.ServerCommunication.ServerReader">
+            <summary>
+            A small class that allows to read from the server.
+            Used as an interface to communicate correctly with the Server.
+            </summary>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerReader.#ctor(System.IO.Stream)">
+            <summary>
+            Creates a new ServerReader with the given stream and allows to read from it.
+            </summary>
+            <param name="stream">The stream to write to.</param>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerReader.ReadServerCommand">
+            <summary>
+            Reads the next ServerCommand from the stream. Can return null.
+            <para>
+            CAUTION: This will block the current thread. Use <see cref="M:Data.ServerCommunication.ServerReader.StartReadTaskAsync"/> to not block it.
+            </para>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerReader.StartReadTaskAsync">
+            <summary>
+            Starts the task of reading async from the stream.
+            </summary>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerReader.IsReadTaskCompleted">
+            <summary>
+            Returns the current completion state of the reading task.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerReader.FinishReadTaskAsync">
+            <summary>
+            Returns the ServerCommand read from the stream.
+            Should only be called after <see cref="M:Data.ServerCommunication.ServerReader.IsReadTaskCompleted"/> returns true.
+            </summary>
+            <returns>The ServerCommand object received from the stream.</returns>
+        </member>
+        <member name="T:Data.ServerCommunication.ServerResponse">
             <summary>
             Used for sending responses from the server to the client. Includes following responses:
             <para><see cref="T:Data.CustomExceptions.ICustomException"/>: If an exception occured. Will include the exception message as data.</para>
@@ -169,59 +235,77 @@
             <para><see cref="T:Data.ResponseTypes.HeartRateResponse"/> If subscribed to event and whenever a new heart rate is measured.</para>
             </summary>
         </member>
-        <member name="T:Data.ServerResponse.ResponseStatus">
+        <member name="T:Data.ServerCommunication.ServerResponse.ResponseStatus">
             <summary>
             Different statuses of the response.
             </summary>
         </member>
-        <member name="P:Data.ServerResponse.Data">
+        <member name="P:Data.ServerCommunication.ServerResponse.Data">
             <summary>
             The data of this response.
             </summary>
         </member>
-        <member name="P:Data.ServerResponse.Status">
+        <member name="P:Data.ServerCommunication.ServerResponse.Status">
             <summary>
-            The status of this response. See: <see cref="T:Data.ServerResponse.ResponseStatus"/>.
+            The status of this response. See: <see cref="T:Data.ServerCommunication.ServerResponse.ResponseStatus"/>.
             </summary>
         </member>
-        <member name="F:Data.ServerResponse._dataType">
+        <member name="F:Data.ServerCommunication.ServerResponse._dataType">
             <summary>
             The type of the data. Used for deserializing. 
             </summary>
         </member>
-        <member name="M:Data.ServerResponse.#ctor(System.Object,Data.ServerResponse.ResponseStatus)">
+        <member name="M:Data.ServerCommunication.ServerResponse.#ctor(System.Object,Data.ServerCommunication.ServerResponse.ResponseStatus)">
             <summary>
             Creates a ServerResponse with the given data and ResponseStatus.
             </summary>
             <param name="data"></param>
             <param name="status"></param>
         </member>
-        <member name="M:Data.ServerResponse.#ctor(System.Exception)">
+        <member name="M:Data.ServerCommunication.ServerResponse.#ctor(System.Exception)">
             <summary>
             Creates a ServerResponse-Exception with the given Exception.
             </summary>
             <param name="exception"></param>
         </member>
-        <member name="M:Data.ServerResponse.EmptySuccess">
+        <member name="M:Data.ServerCommunication.ServerResponse.EmptySuccess">
             <summary>
-            Creates an a ServerResponse that holds an empty string as data with a successful <see cref="T:Data.ServerResponse.ResponseStatus"/>.
+            Creates an a ServerResponse that holds an empty string as data with a successful <see cref="T:Data.ServerCommunication.ServerResponse.ResponseStatus"/>.
             This is considered as an "empty" response, used to simply return a success.
             </summary>
             <returns>An "empty" successful response.</returns>
         </member>
-        <member name="M:Data.ServerResponse.ToJson">
+        <member name="M:Data.ServerCommunication.ServerResponse.ToJson">
             <summary>
             Converts the ServerResponse to a JSON-String.
             </summary>
             <returns>The ServerResponse-Object as a JSON-String.</returns>
         </member>
-        <member name="M:Data.ServerResponse.FromJson(System.String)">
+        <member name="M:Data.ServerCommunication.ServerResponse.FromJson(System.String)">
             <summary>
             Converts a JSON-String (representing a ServerResponse) back to an object.
             </summary>
             <param name="json">The JSON-String representing the ServerResponse.</param>
             <returns>The ServerResponse converted from the JSON-String.</returns>
             <exception cref="T:System.TypeLoadException">Data has no type. Cannot create ServerStatus with type-less data.</exception>
+        </member>
+        <member name="T:Data.ServerCommunication.ServerWriter">
+            <summary>
+            A small class that allows to write to the server.
+            Used as an interface to communicate correctly with the Server.
+            </summary>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerWriter.#ctor(System.IO.Stream)">
+            <summary>
+            Creates a new ServerWriter with the given stream and allows to write with it.
+            </summary>
+            <param name="stream">The stream to write to.</param>
+        </member>
+        <member name="M:Data.ServerCommunication.ServerWriter.Write(System.String)">
+            <summary>
+            Writes the given string to the stream.
+            </summary>
+            <param name="data">The string data to be written to the stream.</param>
         </member>
     </members>
 </doc>

@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Data
+namespace Data.ServerCommunication
 {
     /// <summary>
     /// A ServerCommand will be send from the client to the server, where the command will be executed.
@@ -22,6 +22,11 @@ namespace Data
 
         private const string SEPARATOR = "-";
 
+        /// <summary>
+        /// Creates a ServerCommand object with the given deviceIndex and command.
+        /// </summary>
+        /// <param name="deviceIndex">The index of the device.</param>
+        /// <param name="command">The command for the device.</param>
         public ServerCommand(int deviceIndex, Consts.Command command)
         {
             DeviceIndex = deviceIndex;
