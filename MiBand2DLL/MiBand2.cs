@@ -11,28 +11,33 @@ using MiBand2DLL.lib;
 
 namespace MiBand2DLL
 {
-    public static class MiBand2
+    public class MiBand2
     {
         #region Variables
 
         #region Public
 
         /// <summary>
+        /// The device index of the physical MiBand2 that this object represents.
+        /// </summary>
+        public int DeviceIndex { get; private set; }
+
+        /// <summary>
         /// The connected MiBand2 reference. Null if no band is connected.
         /// </summary>
-        public static BluetoothLEDevice ConnectedBtDevice => _connectedBtDevice;
+        public BluetoothLEDevice ConnectedBtDevice => _connectedBtDevice;
 
         /// <summary>
         /// Whether the band is currently connected.
         /// </summary>
-        public static bool Connected =>
+        public bool Connected =>
             _connectedBtDevice != null &&
             _connectedBtDevice.ConnectionStatus == BluetoothConnectionStatus.Connected;
 
         /// <summary>
         /// Whether the band is currently authenticated.
         /// </summary>
-        public static bool Authenticated => Authentication.Authenticated;
+        public bool Authenticated => _authentication.Authenticated;
 
         /// <summary>
         /// Event for connection status changes. This event will fire when the band gets connected and disconnected.
@@ -40,13 +45,14 @@ namespace MiBand2DLL
         /// <para>
         /// </para>
         /// </summary>
-        public static event ConnectionStatusDelegate DeviceConnectionChanged;
+        public event ConnectionStatusDelegate DeviceConnectionChanged;
 
         /// <summary>
         /// Delegate used as a middleman to allow subscription from outside.
         /// </summary>
-        /// <param name="isConnected">Whether the device is connected or disconnected</param>
-        public delegate void ConnectionStatusDelegate(bool isConnected);
+        /// <param name="deviceIndex">The index of the corresponding device.</param>
+        /// <param name="isConnected">Whether the device is connected or disconnected.</param>
+        public delegate void ConnectionStatusDelegate(int deviceIndex, bool isConnected);
 
         #endregion
 
@@ -55,17 +61,17 @@ namespace MiBand2DLL
         /// <summary>
         /// Heart rate functionality used to measure the heart rate.
         /// </summary>
-        private static readonly HeartRate HeartRate = new HeartRate();
+        private readonly HeartRate _heartRate;
 
         /// <summary>
         /// Authentication functionality used for connecting and authenticating the band with the pc.
         /// </summary>
-        private static readonly Authentication Authentication = new Authentication();
+        private readonly Authentication _authentication;
 
         /// <summary>
         /// The connected Mi Band 2 reference. Null if no band is connected.
         /// </summary>
-        private static BluetoothLEDevice _connectedBtDevice;
+        private BluetoothLEDevice _connectedBtDevice;
 
         /// <summary>
         /// Flag for preventing multiple connection processes.
@@ -80,19 +86,26 @@ namespace MiBand2DLL
 
         #region Public
 
+        public MiBand2(int deviceIndex)
+        {
+            DeviceIndex = deviceIndex;
+            _heartRate = new HeartRate(this);
+            _authentication = new Authentication(this);
+        }
+
         /// <summary>
         /// Connects to the already paired device.
         /// </summary>
         /// <param name="name"></param>
         /// <exception cref="DeviceNotFoundException">Device with given name not found. Is it Paired?</exception>
         /// <exception cref="WindowsException"><see cref="BluetoothLEDevice.FromIdAsync"/> couldn't get device. Debugging required.</exception>
-        public static async Task ConnectBandAsync(string name = Consts.General.MI_BAND_NAME)
+        public async Task ConnectBandAsync(string name = Consts.General.MI_BAND_NAME)
         {
             if (_isInConnectionProcess)
                 throw new AccessDeniedException("In connection process. Can't access band atm.");
 
             _isInConnectionProcess = true;
-            DeviceInformation device = await FindDeviceAsync(name);
+            DeviceInformation device = await FindDeviceAsync(DeviceIndex, name);
             _connectedBtDevice = await BluetoothLEDevice.FromIdAsync(device.Id);
             _isInConnectionProcess = false;
 
@@ -107,14 +120,14 @@ namespace MiBand2DLL
         /// Disconnects the band by disposing all references. Band will stay paired though.
         /// </summary>
         /// <param name="triggerEvent">Should the <see cref="DeviceConnectionChanged"/> event be triggered?</param>
-        public static void DisconnectBand(bool triggerEvent = true)
+        public void DisconnectBand(bool triggerEvent = true)
         {
             if (triggerEvent)
-                DeviceConnectionChanged?.Invoke(false);
+                DeviceConnectionChanged?.Invoke(DeviceIndex, false);
 
             DeviceConnectionChanged = null;
-            HeartRate.Dispose();
-            Authentication.Dispose();
+            _heartRate.Dispose();
+            _authentication.Dispose();
             if (_connectedBtDevice != null)
             {
                 _connectedBtDevice.ConnectionStatusChanged -= ConnectionStatusChanged;
@@ -130,17 +143,17 @@ namespace MiBand2DLL
         /// Authenticates the band.
         /// </summary>
         /// <exception cref="AccessDeniedException">Device can't be accessed due to being accessed by something else.</exception>
-        public static async Task AuthenticateBandAsync() => await Authentication.AuthenticateAsync();
+        public async Task AuthenticateBandAsync() => await _authentication.AuthenticateAsync();
 
         /// <summary>
         /// Starts the continuous heart rate measurement.
         /// </summary>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
         /// <exception cref="NotAuthenticatedException">Device is not authenticated.</exception>
-        public static async Task StartMeasurementAsync()
+        public async Task StartMeasurementAsync()
         {
             if (IsConnectedAndAuthenticated())
-                await HeartRate.StartHeartRateMeasurementAsync();
+                await _heartRate.StartHeartRateMeasurementAsync();
         }
 
         /// <summary>
@@ -149,10 +162,10 @@ namespace MiBand2DLL
         /// <returns></returns>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
         /// <exception cref="NotAuthenticatedException">Device is not authenticated.</exception>
-        public static async Task StopMeasurementAsync()
+        public async Task StopMeasurementAsync()
         {
             if (IsConnectedAndAuthenticated())
-                await HeartRate.StopMeasurementAsync();
+                await _heartRate.StopMeasurementAsync();
         }
 
         /// <summary>
@@ -160,22 +173,20 @@ namespace MiBand2DLL
         /// measurement is enabled and a new heart rate is received.
         /// </summary>
         /// <param name="method">Method to be subscribed to the OnHeartRateChange event</param>
-        public static void SubscribeToHeartRateChange(Action<HeartRateResponse> method)
-        {
+        public void SubscribeToHeartRateChange(Action<HeartRateResponse> method) =>
             HeartRate.OnHeartRateChange += method;
-        }
 
         /// <summary>
         /// Asks the user to touch the the band.
         /// CAUTION: Can only be cancelled by disconnecting the band.
         /// </summary>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
-        public static async Task AskUserForTouchAsync()
+        public async Task AskUserForTouchAsync()
         {
             if (!Connected)
                 throw new DeviceDisconnectedException("The device is currently not connected.");
 
-            await Authentication.AskForUserTouchAsync();
+            await _authentication.AskForUserTouchAsync();
         }
 
         #endregion
@@ -185,15 +196,16 @@ namespace MiBand2DLL
         /// <summary>
         /// Finds the first paired bluetooth-device with the given name.
         /// </summary>
+        /// <param name="deviceIndex">The device index of the device.</param>
         /// <param name="name">The name of the device to be searched for.</param>
         /// <returns>The <see cref="DeviceInformation"/> of the device, if found.</returns>
         /// <exception cref="DeviceNotFoundException">Device with given name not found.</exception>
-        private static async Task<DeviceInformation> FindDeviceAsync(string name)
+        private async Task<DeviceInformation> FindDeviceAsync(int deviceIndex, string name)
         {
             DeviceInformationCollection devices =
                 await DeviceInformation.FindAllAsync(BluetoothLEDevice.GetDeviceSelector());
 
-            DeviceInformation device = devices.FirstOrDefault(information => information.Name == name);
+            DeviceInformation device = devices.Where(information => information.Name == name).ElementAt(deviceIndex);
             if (device == default)
                 throw new DeviceNotFoundException("Couldn't find device. Is it paired?");
 
@@ -204,11 +216,11 @@ namespace MiBand2DLL
         /// Will be called when <see cref="BluetoothLEDevice.ConnectionStatusChanged"/> is called.
         /// Used as a middleman to allow subscription from outside using <see cref="DeviceConnectionChanged"/>.
         /// </summary>
-        private static void ConnectionStatusChanged(BluetoothLEDevice sender, object args)
+        private void ConnectionStatusChanged(BluetoothLEDevice sender, object args)
         {
             if (!Connected)
                 DisconnectBand();
-            DeviceConnectionChanged?.Invoke(Connected);
+            DeviceConnectionChanged?.Invoke(DeviceIndex, Connected);
         }
 
         /// <summary>
@@ -217,7 +229,7 @@ namespace MiBand2DLL
         /// <returns>True if the band is connected and authenticated.</returns>
         /// <exception cref="DeviceDisconnectedException">Device is disconnected.</exception>
         /// <exception cref="NotAuthenticatedException">Device is not authenticated.</exception>
-        private static bool IsConnectedAndAuthenticated()
+        private bool IsConnectedAndAuthenticated()
         {
             if (!Connected)
                 throw new DeviceDisconnectedException("The device is currently not connected.");

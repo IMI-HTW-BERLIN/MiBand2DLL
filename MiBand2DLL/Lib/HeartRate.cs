@@ -74,6 +74,11 @@ namespace MiBand2DLL.lib
         /// </summary>
         private int _lastHeartRate;
 
+        /// <summary>
+        /// Back-Reference to owning MiBand2. Needed for getting Services from the band.
+        /// </summary>
+        private readonly MiBand2 _miBand2;
+
         #endregion
 
         #endregion
@@ -81,6 +86,8 @@ namespace MiBand2DLL.lib
         #region Methods
 
         #region Public
+
+        public HeartRate(MiBand2 miBand2) => _miBand2 = miBand2;
 
         /// <summary>
         /// Dispose of all references. This is needed to disconnect the device.
@@ -147,7 +154,7 @@ namespace MiBand2DLL.lib
         /// <exception cref="AccessDeniedException">Service is already in use.</exception>
         private async Task InitializeAsync()
         {
-            BluetoothLEDevice device = MiBand2.ConnectedBtDevice;
+            BluetoothLEDevice device = _miBand2.ConnectedBtDevice;
             if (device == null)
                 throw new DeviceDisconnectedException("There is no device connected.");
             _hrService = await Gatt.GetServiceByUuid(device, Consts.Guids.HR_SERVICE);
@@ -199,7 +206,8 @@ namespace MiBand2DLL.lib
             _lastTimeMeasureReceived = currentTime;
 
 
-            OnHeartRateChange?.Invoke(new HeartRateResponse(heartRate, isRepeating, measuringTime));
+            OnHeartRateChange?.Invoke(
+                new HeartRateResponse(_miBand2.DeviceIndex, heartRate, isRepeating, measuringTime));
             await SendNextHRRequest();
         }
 

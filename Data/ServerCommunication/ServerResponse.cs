@@ -4,7 +4,7 @@ using Data.CustomExceptions;
 using Data.ResponseTypes;
 using Newtonsoft.Json;
 
-namespace Data
+namespace Data.ServerCommunication
 {
     /// <summary>
     /// Used for sending responses from the server to the client. Includes following responses:
@@ -35,6 +35,11 @@ namespace Data
         /// </summary>
         private readonly Type _dataType;
 
+        /// <summary>
+        /// Creates a ServerResponse with the given data and ResponseStatus.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="status"></param>
         public ServerResponse(object data, ResponseStatus status = ResponseStatus.Success)
         {
             Data = data;
@@ -42,6 +47,10 @@ namespace Data
             _dataType = Data.GetType();
         }
 
+        /// <summary>
+        /// Creates a ServerResponse-Exception with the given Exception.
+        /// </summary>
+        /// <param name="exception"></param>
         public ServerResponse(Exception exception) : this(exception, ResponseStatus.Failure)
         {
         }

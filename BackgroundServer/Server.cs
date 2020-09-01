@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using Data;
 using Data.ResponseTypes;
+using Data.ServerCommunication;
 using MiBand2DLL;
 
 namespace BackgroundServer
@@ -24,17 +25,22 @@ namespace BackgroundServer
         /// <summary>
         /// BinaryWriter used for writing to the client
         /// </summary>
-        private static BinaryWriter _writer;
+        private static ServerWriter _writer;
 
         /// <summary>
         /// BinaryReader used for reading received commands from the client.
         /// </summary>
-        private static BinaryReader _reader;
+        private static ServerReader _reader;
 
         /// <summary>
         /// Whether we are currently listening for commands. Used as a stopping-token.
         /// </summary>
         private static bool _listenForCommands = true;
+
+        /// <summary>
+        /// A list of all connected mi bands.
+        /// </summary>
+        private static readonly List<MiBand2> MiBands = new List<MiBand2>();
 
         /// <summary>
         /// Simply starts the server with the execution of the exe.
@@ -46,6 +52,7 @@ namespace BackgroundServer
         /// </summary>
         private static async Task StartServer()
         {
+            MiBands.Clear();
             _server?.Stop();
             _listenForCommands = true;
             _server = TcpListener.Create(Consts.ServerData.PORT);
@@ -56,8 +63,8 @@ namespace BackgroundServer
             Console.WriteLine("Client connected.");
 
             NetworkStream stream = _client.GetStream();
-            _writer = new BinaryWriter(stream, Encoding.UTF8, true);
-            _reader = new BinaryReader(stream, Encoding.UTF8, true);
+            _writer = new ServerWriter(stream);
+            _reader = new ServerReader(stream);
             await ListenForCommands();
         }
 
@@ -66,77 +73,81 @@ namespace BackgroundServer
         /// </summary>
         private static async Task ListenForCommands()
         {
-            using (_reader)
+            try
             {
-                try
+                while (_listenForCommands)
                 {
-                    while (_listenForCommands)
-                    {
-                        // BinaryReader actually blocks the thread if there is no data in the stream
-                        // -> while-loop paused until command received
-                        Consts.Command command = (Consts.Command) _reader.ReadInt32();
-                        Console.WriteLine("Command received: {0}.", command);
-                        await ExecuteCommand(command);
-                    }
+                    // BinaryReader actually blocks the thread if there is no data in the stream
+                    // -> while-loop paused until command received
+                    ServerCommand serverCommand = _reader.ReadServerCommand();
+                    if (serverCommand == null)
+                        continue;
+                    Console.WriteLine($"Command: {serverCommand.Command} for device: {serverCommand.DeviceIndex}");
+                    await ExecuteCommand(serverCommand);
                 }
-                catch (IOException exception)
-                {
-                    await ClientConnectionLost(exception.Message);
-                }
+            }
+            catch (IOException exception)
+            {
+                await ClientConnectionLost(0, exception.Message);
             }
         }
 
         /// <summary>
         /// Executes the given command. Will send any exception that occures to the client.
         /// </summary>
-        /// <param name="command">The command to be executed</param>
-        private static async Task ExecuteCommand(Consts.Command command)
+        /// <param name="serverCommand">The ServerCommand containing the deviceIndex and the command.</param>
+        private static async Task ExecuteCommand(ServerCommand serverCommand)
         {
+            int deviceIndex = serverCommand.DeviceIndex;
+            if (deviceIndex > MiBands.Count - 1)
+                MiBands.Add(new MiBand2(MiBands.Count));
+            MiBand2 miBand2 = MiBands[deviceIndex];
             try
             {
-                switch (command)
+                switch (serverCommand.Command)
                 {
                     case Consts.Command.ConnectBand:
-                        await MiBand2.ConnectBandAsync();
-                        SendSuccess();
+                        await miBand2.ConnectBandAsync();
+                        SendSuccess(deviceIndex);
                         break;
                     case Consts.Command.DisconnectBand:
-                        MiBand2.DisconnectBand();
-                        SendSuccess();
+                        miBand2.DisconnectBand();
+                        SendSuccess(deviceIndex);
                         break;
                     case Consts.Command.AuthenticateBand:
-                        await MiBand2.AuthenticateBandAsync();
-                        SendSuccess();
+                        await miBand2.AuthenticateBandAsync();
+                        SendSuccess(deviceIndex);
                         break;
                     case Consts.Command.StartMeasurement:
-                        await MiBand2.StartMeasurementAsync();
-                        SendSuccess();
+                        await miBand2.StartMeasurementAsync();
+                        SendSuccess(deviceIndex);
                         break;
                     case Consts.Command.StopMeasurement:
-                        await MiBand2.StopMeasurementAsync();
-                        SendSuccess();
+                        await miBand2.StopMeasurementAsync();
+                        SendSuccess(deviceIndex);
                         break;
                     case Consts.Command.SubscribeToHeartRateChange:
-                        MiBand2.SubscribeToHeartRateChange(OnHeartRateChange);
-                        SendSuccess();
+                        miBand2.SubscribeToHeartRateChange(OnHeartRateChange);
+                        SendSuccess(deviceIndex);
                         break;
                     case Consts.Command.SubscribeToDeviceConnectionStatusChanged:
-                        MiBand2.DeviceConnectionChanged += OnDeviceConnectionStatusChanged;
+                        miBand2.DeviceConnectionChanged += OnDeviceConnectionStatusChanged;
                         break;
                     case Consts.Command.AskUserForTouch:
-                        await MiBand2.AskUserForTouchAsync();
-                        SendSuccess();
+                        await miBand2.AskUserForTouchAsync();
+                        SendSuccess(deviceIndex);
                         break;
                     case Consts.Command.StopServer:
-                        if (MiBand2.Connected)
-                            MiBand2.DisconnectBand();
+                        if (miBand2.Connected)
+                            miBand2.DisconnectBand();
                         _listenForCommands = false;
                         _server.Stop();
                         break;
                     default:
                         ArgumentOutOfRangeException exception =
-                            new ArgumentOutOfRangeException(nameof(command), command, "Could not find command.");
-                        SendData(new ServerResponse(exception).ToJson());
+                            new ArgumentOutOfRangeException(nameof(serverCommand.Command), serverCommand.Command,
+                                "Could not find command.");
+                        SendData(serverCommand.DeviceIndex, new ServerResponse(exception).ToJson());
                         break;
                 }
             }
@@ -145,20 +156,21 @@ namespace BackgroundServer
                 Console.WriteLine("EXCEPTION OCCURED:");
                 Console.WriteLine("Type: {0}\nMessage{1}", exception.GetType(), exception.Message);
                 ServerResponse response = new ServerResponse(exception);
-                SendData(response.ToJson());
+                SendData(serverCommand.DeviceIndex, response.ToJson());
             }
         }
 
         /// <summary>
         /// Sends a <see cref="DeviceConnectionResponse"/> to the client.
         /// </summary>
+        /// <param name="deviceIndex">The index of the device</param>
         /// <param name="isConnected">Whether the device is connected or not.</param>
-        private static void OnDeviceConnectionStatusChanged(bool isConnected)
+        private static void OnDeviceConnectionStatusChanged(int deviceIndex, bool isConnected)
         {
             Console.WriteLine("Sending device connection status to client: isConnected = {0}", isConnected);
             ServerResponse response =
-                new ServerResponse(new DeviceConnectionResponse(isConnected));
-            SendData(response.ToJson());
+                new ServerResponse(new DeviceConnectionResponse(deviceIndex, isConnected));
+            SendData(deviceIndex, response.ToJson());
         }
 
         /// <summary>
@@ -169,33 +181,34 @@ namespace BackgroundServer
         {
             Console.WriteLine("Sending heart rate to client: {0}", heartRateResponse.HeartRate);
             ServerResponse response = new ServerResponse(heartRateResponse);
-            SendData(response.ToJson());
+            SendData(heartRateResponse.DeviceIndex, response.ToJson());
         }
 
         /// <summary>
         /// Sends a success response to the client. Used for indicating successful executed commands.
         /// </summary>
-        private static void SendSuccess()
+        private static void SendSuccess(int deviceIndex)
         {
-            Console.WriteLine("Successfully executed command.");
+            Console.WriteLine($"Successfully executed command for device {deviceIndex}");
             string json = ServerResponse.EmptySuccess().ToJson();
-            SendData(json);
+            SendData(deviceIndex, json);
         }
 
         /// <summary>
         /// Sends the given data (JSON) to the client. Restarts server if client got lost.
         /// </summary>
         /// <param name="data">The data to be send (as JSON-string)</param>
-        private static async void SendData(string data)
+        /// <param name="deviceIndex">The corresponding MiBandIndex</param>
+        private static async void SendData(int deviceIndex, string data)
         {
-            Console.WriteLine("Sending: {0}", data);
+            Console.WriteLine($"Device: {deviceIndex} -> Sending: {data}");
             try
             {
                 _writer.Write(data);
             }
             catch (IOException exception)
             {
-                await ClientConnectionLost(exception.Message);
+                await ClientConnectionLost(deviceIndex, exception.Message);
             }
         }
 
@@ -203,12 +216,13 @@ namespace BackgroundServer
         /// Restarts the server after not being able to reach the client.
         /// </summary>
         /// <param name="exceptionMessage">The exception message that indicates the connection-loss-cause</param>
+        /// <param name="deviceIndex">The corresponding MiBandIndex</param>
         /// <returns></returns>
-        private static async Task ClientConnectionLost(string exceptionMessage)
+        private static async Task ClientConnectionLost(int deviceIndex, string exceptionMessage)
         {
             Console.WriteLine("Could not reach client.\nException Message: {0}", exceptionMessage);
             Console.WriteLine("Restarting server...");
-            MiBand2.DisconnectBand();
+            MiBands[deviceIndex].DisconnectBand();
             await StartServer();
         }
     }
