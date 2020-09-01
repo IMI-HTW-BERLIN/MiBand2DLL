@@ -163,6 +163,7 @@ namespace BackgroundServer
         /// <summary>
         /// Sends a <see cref="DeviceConnectionResponse"/> to the client.
         /// </summary>
+        /// <param name="deviceIndex">The index of the device</param>
         /// <param name="isConnected">Whether the device is connected or not.</param>
         private static void OnDeviceConnectionStatusChanged(int deviceIndex, bool isConnected)
         {
@@ -188,7 +189,7 @@ namespace BackgroundServer
         /// </summary>
         private static void SendSuccess(int deviceIndex)
         {
-            Console.WriteLine("Successfully executed command.");
+            Console.WriteLine($"Successfully executed command for device {deviceIndex}");
             string json = ServerResponse.EmptySuccess().ToJson();
             SendData(deviceIndex, json);
         }
@@ -200,7 +201,7 @@ namespace BackgroundServer
         /// <param name="deviceIndex">The corresponding MiBandIndex</param>
         private static async void SendData(int deviceIndex, string data)
         {
-            Console.WriteLine("Sending: {0}", data);
+            Console.WriteLine($"Device: {deviceIndex} -> Sending: {data}");
             try
             {
                 _writer.Write(data);
