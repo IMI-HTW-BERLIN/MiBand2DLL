@@ -12,8 +12,6 @@ namespace Data.ServerCommunication
     {
         private readonly BinaryReader _reader;
 
-        private Task<string> _readingTask;
-
         /// <summary>
         /// Creates a new ServerReader with the given stream and allows to read from it.
         /// </summary>
@@ -23,29 +21,15 @@ namespace Data.ServerCommunication
         /// <summary>
         /// Reads the next ServerCommand from the stream. Can return null.
         /// <para>
-        /// CAUTION: This will block the current thread. Use <see cref="StartReadTaskAsync"/> to not block it.
+        /// CAUTION: This will block the current thread.
         /// </para>
         /// </summary>
         /// <returns></returns>
         public ServerCommand ReadServerCommand() => ServerCommand.FromString(_reader.ReadString());
 
         /// <summary>
-        /// Starts the task of reading async from the stream.
+        /// Reads from the stream using a task.
         /// </summary>
-        public void StartReadTaskAsync() => _readingTask = _reader.ReadStringAsync();
-
-        /// <summary>
-        /// Returns the current completion state of the reading task.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsReadTaskCompleted() => _readingTask.IsCompleted;
-
-        /// <summary>
-        /// Returns the ServerCommand read from the stream.
-        /// Should only be called after <see cref="IsReadTaskCompleted"/> returns true.
-        /// </summary>
-        /// <returns>The string received from the stream.</returns>
-        public string FinishReadTaskAsync() =>
-            _readingTask.IsCompleted ? _readingTask.Result : null;
+        public async Task<string> ReadStringAsync() => await _reader.ReadStringAsync();
     }
 }
