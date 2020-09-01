@@ -203,28 +203,15 @@
             <summary>
             Reads the next ServerCommand from the stream. Can return null.
             <para>
-            CAUTION: This will block the current thread. Use <see cref="M:Data.ServerCommunication.ServerReader.StartReadTaskAsync"/> to not block it.
+            CAUTION: This will block the current thread.
             </para>
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Data.ServerCommunication.ServerReader.StartReadTaskAsync">
+        <member name="M:Data.ServerCommunication.ServerReader.ReadStringAsync">
             <summary>
-            Starts the task of reading async from the stream.
+            Reads from the stream using a task.
             </summary>
-        </member>
-        <member name="M:Data.ServerCommunication.ServerReader.IsReadTaskCompleted">
-            <summary>
-            Returns the current completion state of the reading task.
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Data.ServerCommunication.ServerReader.FinishReadTaskAsync">
-            <summary>
-            Returns the ServerCommand read from the stream.
-            Should only be called after <see cref="M:Data.ServerCommunication.ServerReader.IsReadTaskCompleted"/> returns true.
-            </summary>
-            <returns>The string received from the stream.</returns>
         </member>
         <member name="T:Data.ServerCommunication.ServerResponse">
             <summary>
