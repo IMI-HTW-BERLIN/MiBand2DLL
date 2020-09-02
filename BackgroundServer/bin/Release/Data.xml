@@ -119,6 +119,22 @@
             Creates a DeviceConnectionResponse object with the given deviceIndex and connection status.
             </summary>
         </member>
+        <member name="T:Data.ResponseTypes.SuccessResponse">
+            <summary>
+            A response that simply indicates that the server received a command and successfully executed it.
+            </summary>
+        </member>
+        <member name="P:Data.ResponseTypes.SuccessResponse.DeviceIndex">
+            <summary>
+            The device index of the device that the server communicated with and executed the command with.
+            </summary>
+        </member>
+        <member name="M:Data.ResponseTypes.SuccessResponse.#ctor(System.Int32)">
+            <summary>
+            Creates an EmptySuccessResponse
+            </summary>
+            <param name="deviceIndex"></param>
+        </member>
         <member name="T:Data.ResponseTypes.HeartRateResponse">
             <summary>
             A small struct used for holding data related to the measurement of a heart rate.

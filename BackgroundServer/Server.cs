@@ -190,8 +190,8 @@ namespace BackgroundServer
         private static void SendSuccess(int deviceIndex)
         {
             Console.WriteLine($"Successfully executed command for device {deviceIndex}");
-            string json = ServerResponse.EmptySuccess().ToJson();
-            SendData(deviceIndex, json);
+            ServerResponse response = new ServerResponse(new SuccessResponse(deviceIndex));
+            SendData(deviceIndex, response.ToJson());
         }
 
         /// <summary>
